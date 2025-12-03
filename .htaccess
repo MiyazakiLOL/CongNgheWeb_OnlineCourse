@@ -1,0 +1,7 @@
+# .htaccess – nằm trong htdocs/onlinecourse/.htaccess
+RewriteEngine On
+RewriteBase /onlinecourse/
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [QSA,L]
