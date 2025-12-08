@@ -1,121 +1,83 @@
 <?php
 // controllers/CourseController.php
+require_once __DIR__ . '/../config/Database.php';
 require_once __DIR__ . '/../models/Course.php';
 require_once __DIR__ . '/../models/Category.php';
-require_once __DIR__ . '/../middleware.php';
+require_once __DIR__ . '/../models/Enrollment.php';
 
 class CourseController {
-    private $model;
+    private $db;
+    private $courseModel;
+    private $categoryModel;
+    private $enrollmentModel;
+
     public function __construct() {
-        $this->model = new Course();
+        $database = new Database();
+        $this->db = $database->connect() ;
+        $this->courseModel = new Course($this->db);
+        $this->categoryModel = new Category($this->db);
+        $this->enrollmentModel = new Enrollment($this->db);
+        
+        // Khởi động session nếu chưa có (để kiểm tra đăng nhập)
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
     }
 
-    // Danh sách khóa học của giảng viên
-    public function myCourses() {
-        requireInstructor();
-        $instructorId = $_SESSION['user']['id'];
-        $courses = $this->model->getByInstructor($instructorId);
-        require __DIR__ . '/../views/instructor/course/manage.php';
+    // 1. Hiển thị danh sách khóa học (có tìm kiếm)
+    public function index() {
+        $keyword = isset($_GET['keyword']) ? $_GET['keyword'] : '';
+        $category_id = isset($_GET['category_id']) ? (int)$_GET['category_id'] : 0;
+
+        $courses = $this->courseModel->getAll($keyword, $category_id);
+        $categories = $this->categoryModel->getAll();
+
+        require __DIR__ . '/../views/courses/index.php';
     }
 
-    // Form tạo khóa học
-    public function create() {
-        requireInstructor();
-        $categories = (new Category())->getAll();
-        require __DIR__ . '/../views/instructor/course/create.php';
-    }
+    // 2. Hiển thị chi tiết khóa học
+    public function detail() {
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $course = $this->courseModel->getById($id);
 
-    // Lưu khóa học mới
-    public function store() {
-        requireInstructor();
-        $title = trim($_POST['title'] ?? '');
-        $description = trim($_POST['description'] ?? '');
-        $category_id = $_POST['category_id'] ?? null;
-        $price = (float)($_POST['price'] ?? 0);
-        $duration_weeks = (int)($_POST['duration_weeks'] ?? 0);
-        $level = $_POST['level'] ?? 'Beginner';
-
-        // Upload ảnh
-        $imageName = null;
-        if (!empty($_FILES['image']['name'])) {
-            $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
-            $allowed = ['jpg','jpeg','png','gif'];
-            if (in_array($ext, $allowed)) {
-                $imageName = time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
-                $target = __DIR__ . '/../assets/uploads/courses/' . $imageName;
-                move_uploaded_file($_FILES['image']['tmp_name'], $target);
-            }
+        if (!$course) {
+            echo "Khóa học không tồn tại!";
+            return;
         }
 
-        $this->model->create([
-            'title'=>$title,
-            'description'=>$description,
-            'instructor_id'=>$_SESSION['user']['id'],
-            'category_id'=>$category_id,
-            'price'=>$price,
-            'duration_weeks'=>$duration_weeks,
-            'level'=>$level,
-            'image'=>$imageName
-        ]);
-
-        header("Location: /onlinecourse/index.php?route=course/myCourses");
-        exit;
-    }
-
-    // Form chỉnh sửa
-    public function edit() {
-        requireInstructor();
-        $id = $_GET['id'] ?? null;
-        $course = $this->model->find($id);
-        $categories = (new Category())->getAll();
-        require __DIR__ . '/../views/instructor/course/edit.php';
-    }
-
-    // Cập nhật khóa học
-    public function update() {
-        requireInstructor();
-        $id = $_POST['id'];
-        $course = $this->model->find($id);
-
-        $imageName = $course['image'];
-        if (!empty($_FILES['image']['name'])) {
-            $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
-            $allowed = ['jpg','jpeg','png','gif'];
-            if (in_array($ext, $allowed)) {
-                $imageName = time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
-                $target = __DIR__ . '/../assets/uploads/courses/' . $imageName;
-                move_uploaded_file($_FILES['image']['tmp_name'], $target);
-                if (!empty($course['image'])) {
-                    $oldPath = __DIR__ . '/../assets/uploads/courses/' . $course['image'];
-                    if (file_exists($oldPath)) unlink($oldPath);
-                }
-            }
+        // Kiểm tra xem người dùng đã đăng ký khóa này chưa (nếu đã đăng nhập)
+        $isEnrolled = false;
+        if (isset($_SESSION['user_id'])) {
+            $isEnrolled = $this->enrollmentModel->isEnrolled($_SESSION['user_id'], $id);
         }
 
-        $this->model->update([
-            'id'=>$id,
-            'title'=>$_POST['title'],
-            'description'=>$_POST['description'],
-            'category_id'=>$_POST['category_id'],
-            'price'=>$_POST['price'],
-            'duration_weeks'=>$_POST['duration_weeks'],
-            'level'=>$_POST['level'],
-            'image'=>$imageName
-        ]);
-
-        header("Location: /onlinecourse/index.php?route=course/myCourses");
-        exit;
+        require __DIR__ . '/../views/courses/detail.php';
     }
 
-    // Xóa khóa học
-    public function delete() {
-        requireInstructor();
-        $id = $_GET['id'];
-        $this->model->delete($id);
-        header("Location: /onlinecourse/index.php?route=course/myCourses");
-        exit;
+    // 3. Xử lý đăng ký khóa học
+    public function enroll() {
+        // Kiểm tra đăng nhập
+        if (!isset($_SESSION['user_id'])) {
+            // Nếu chưa đăng nhập, chuyển hướng về trang login
+            header("Location: index.php?controller=auth&action=login");
+            exit();
+        }
+
+        $course_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $student_id = $_SESSION['user_id'];
+
+        // Kiểm tra xem đã đăng ký chưa
+        if ($this->enrollmentModel->isEnrolled($student_id, $course_id)) {
+            echo "<script>alert('Bạn đã đăng ký khóa học này rồi!'); window.history.back();</script>";
+            return;
+        }
+
+        // Thực hiện đăng ký
+        if ($this->enrollmentModel->enroll($student_id, $course_id)) {
+            echo "<script>alert('Đăng ký thành công!'); window.location.href='index.php?controller=student&action=my_courses';</script>";
+        } else {
+            echo "Có lỗi xảy ra, vui lòng thử lại.";
+        }
     }
 }
+?>

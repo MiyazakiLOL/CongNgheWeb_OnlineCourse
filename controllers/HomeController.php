@@ -1,26 +1,34 @@
 <?php
 // controllers/HomeController.php
 
+// 1. Nhúng file cấu hình Database
+require_once __DIR__ . '/../config/Database.php';
 require_once __DIR__ . '/../models/Course.php';
 require_once __DIR__ . '/../models/Category.php';
 
 class HomeController 
 {
+    private $db; // Biến lưu kết nối
     private $courseModel;
     private $categoryModel;
 
     public function __construct() 
     {
-        $this->courseModel = new Course();
-        $this->categoryModel = new Category();
+        // 2. Khởi tạo kết nối Database
+        $database = new Database();
+        $this->db = $database->connect();
+
+        // 3. Truyền biến kết nối $this->db vào trong Model
+        $this->courseModel = new Course($this->db);
+        $this->categoryModel = new Category($this->db);
     }
 
     public function index() 
     {
-        // Lấy khóa học nổi bật (đã duyệt + có nhiều đăng ký nhất - giả lập top 6)
-        $featuredCourses = $this->courseModel->getFeaturedCourses(); // sẽ thêm method này
+        // Lấy khóa học nổi bật
+        $featuredCourses = $this->courseModel->getFeaturedCourses();
 
-        // Lấy danh mục để hiển thị bộ lọc
+        // Lấy danh mục
         $categories = $this->categoryModel->getAll();
 
         // Lấy khóa học mới nhất
@@ -30,3 +38,4 @@ class HomeController
         require __DIR__ . '/../views/home/index.php';
     }
 }
+?>

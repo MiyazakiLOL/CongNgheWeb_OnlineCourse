@@ -4,16 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $title ?? 'OnlineCourse' ?></title>
-    <base href="/onlinecourse/">
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
 </head>
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
     <div class="container">
-        <a class="navbar-brand fw-bold text-primary fs-4" href="/">OnlineCourse</a>
+        <a class="navbar-brand fw-bold text-primary fs-4" href="<?= BASE_URL ?>/home/index">OnlineCourse</a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
@@ -21,47 +21,62 @@
 
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto align-items-center gap-3">
+                
+                <li class="nav-item">
+                    <a class="nav-link" href="<?= BASE_URL ?>/course/index">Tất cả khóa học</a>
+                </li>
 
-                <?php if (isset($_SESSION['user'])): 
-                    $role = $_SESSION['user']['role'] ?? 0;
-                    $name = $_SESSION['user']['fullname'] ?? $_SESSION['user']['username'];
+                <?php if (isset($_SESSION['user_id'])): 
+                    // Lưu ý: Mình dùng $_SESSION['user_id'] và $_SESSION['role'] cho đồng bộ với code Controller trước đó
+                    // Nếu bạn lưu cả object user vào session thì sửa lại nhé.
+                    $role = $_SESSION['role'] ?? 0;
+                    $fullname = $_SESSION['fullname'] ?? 'User';
+                    $avatar = $_SESSION['avatar'] ?? 'default.png'; 
                 ?>
-                    <!-- Nút "Khóa học của tôi" chỉ hiện với học viên và giảng viên -->
+                    
                     <?php if ($role == 0 || $role == 1): ?>
                         <li class="nav-item">
-                            <a href="<?= $role == 0 ? 'student/dashboard' : 'instructor/dashboard' ?>" class="nav-link">
+                            <a href="<?= BASE_URL ?>/student/my_courses" class="nav-link">
                                 Khóa học của tôi
                             </a>
                         </li>
                     <?php endif; ?>
 
-                    <!-- Dropdown user -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" 
                            href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <img src="<?= $_SESSION['user']['avatar'] ?? 'assets/uploads/avatars/default.png' ?>" 
-                                 class="rounded-circle" width="38" height="38" alt="Avatar">
-                            <span class="d-none d-md-inline"><?= htmlspecialchars($name) ?></span>
+                            <img src="<?= BASE_URL ?>/assets/uploads/avatars/<?= htmlspecialchars($avatar) ?>" 
+                                 class="rounded-circle" width="38" height="38" style="object-fit: cover;" alt="Avatar">
+                            <span class="d-none d-md-inline fw-medium"><?= htmlspecialchars($fullname) ?></span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end shadow">
-                            <li><a class="dropdown-item" href="student/profile">
+                        
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                            <li>
+                                <div class="px-3 py-2">
+                                    <span class="d-block small text-muted">Xin chào,</span>
+                                    <span class="fw-bold"><?= htmlspecialchars($fullname) ?></span>
+                                </div>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            
+                            <li><a class="dropdown-item" href="<?= BASE_URL ?>/student/profile">
                                 <i class="bi bi-person me-2"></i> Hồ sơ cá nhân
                             </a></li>
 
                             <?php if ($role == 1): ?>
-                            <li><a class="dropdown-item" href="instructor/dashboard">
-                                <i class="bi bi-easel me-2"></i> Dashboard giảng viên
-                            </a></li>
+                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/instructor/dashboard">
+                                    <i class="bi bi-easel me-2"></i> Dashboard Giảng viên
+                                </a></li>
                             <?php endif; ?>
 
                             <?php if ($role == 2): ?>
-                            <li><a class="dropdown-item" href="admin/dashboard">
-                                <i class="bi bi-shield-lock me-2"></i> Quản trị hệ thống
-                            </a></li>
+                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/admin/dashboard">
+                                    <i class="bi bi-shield-lock me-2"></i> Quản trị hệ thống
+                                </a></li>
                             <?php endif; ?>
 
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="auth/logout">
+                            <li><a class="dropdown-item text-danger" href="<?= BASE_URL ?>/auth/logout">
                                 <i class="bi bi-box-arrow-right me-2"></i> Đăng xuất
                             </a></li>
                         </ul>
@@ -69,10 +84,10 @@
 
                 <?php else: ?>
                     <li class="nav-item">
-                        <a href="auth/login" class="btn btn-outline-primary">Đăng nhập</a>
+                        <a href="<?= BASE_URL ?>/auth/login" class="btn btn-outline-primary fw-medium px-4">Đăng nhập</a>
                     </li>
                     <li class="nav-item">
-                        <a href="auth/register" class="btn btn-primary">Đăng ký</a>
+                        <a href="<?= BASE_URL ?>/auth/register" class="btn btn-primary fw-medium px-4">Đăng ký</a>
                     </li>
                 <?php endif; ?>
 
@@ -81,6 +96,4 @@
     </div>
 </nav>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+<div class="container py-4" style="min-height: 80vh;">

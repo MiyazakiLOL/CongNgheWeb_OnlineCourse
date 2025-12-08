@@ -41,5 +41,29 @@ class Enrollment {
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+// Kiểm tra xem học viên đã đăng ký khóa này chưa
+    public function isEnrolled($student_id, $course_id) {
+        $query = "SELECT id FROM " . $this->table . " 
+                  WHERE student_id = :student_id AND course_id = :course_id LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindValue(':student_id', $student_id);
+        $stmt->bindValue(':course_id', $course_id);
+        $stmt->execute();
+        return $stmt->rowCount() > 0;
+    }
+
+    // Đăng ký khóa học
+    public function enroll($student_id, $course_id) {
+        $query = "INSERT INTO " . $this->table . " 
+                  (student_id, course_id, enrolled_date, status, progress) 
+                  VALUES (:student_id, :course_id, NOW(), 'active', 0)";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindValue(':student_id', $student_id);
+        $stmt->bindValue(':course_id', $course_id);
+        
+        return $stmt->execute();
+    }
+
 }
 ?>
