@@ -14,7 +14,7 @@
                 </form>
             </div>
             <div class="col-lg-6 text-center">
-                <img src="/assets/img/hero-illustration.svg" alt="Learning" class="img-fluid" style="max-height: 400px;">
+                <img src="assets/uploads/hero-illustration.jpg" alt="Learning" class="img-fluid" style="max-height: 400px;">
             </div>
         </div>
     </div>

@@ -18,13 +18,13 @@ class AuthController
                 // Redirect theo role
                 switch ($user['role']) {
                     case 2:
-                        header('Location: /admin/dashboard');
+                        header('Location: ../views/admin/dashboard.php');
                         exit;
                     case 1:
-                        header('Location: /instructor/dashboard');
+                        header('Location: ../views/instructor/dashboard.php');
                         exit;
-                    default:
-                        header('Location: /');
+                    case 0:
+                        header('Location: ../views/student/dashboard.php');
                         exit;
                 }
             } else {
@@ -47,14 +47,15 @@ class AuthController
             $userModel->role     = (int)($_POST['role'] ?? 0); // 0=student, 1=instructor
 
             if ($userModel->register()) {
-                header('Location: /auth/login?success=1');
+                // ĐĂNG KÝ THÀNH CÔNG → CHUYỂN VỀ LOGIN + HIỆN POPUP
+                header('Location: ../views/auth/login.php?register=success');
                 exit;
             } else {
                 $error = "Đăng ký thất bại! Email hoặc username đã tồn tại.";
             }
         }
 
-        $title = "Đăng ký";
+        $title = "Đăng ký tài khoản";
         require __DIR__ . '/../views/auth/register.php';
     }
 
@@ -62,7 +63,7 @@ class AuthController
     {
         session_start();
         session_destroy();
-        header('Location: /');
+        header('Location: /onlinecourse');
         exit;
     }
 }
