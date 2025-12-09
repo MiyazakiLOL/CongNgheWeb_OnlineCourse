@@ -36,28 +36,24 @@ class CourseController {
     }
 
     // 2. Hiển thị chi tiết khóa học
-// controllers/CourseController.php
+    public function detail() {
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $course = $this->courseModel->getById($id);
 
-public function detail($id = 0) {
-    // 1. Luôn luôn lấy thông tin khóa học (Bất kể đã đăng nhập hay chưa)
-    $course = $this->courseModel->getById($id);
+        if (!$course) {
+            echo "Khóa học không tồn tại!";
+            return;
+        }
 
-    if (!$course) {
-        echo "Khóa học không tồn tại!";
-        return;
+        // Kiểm tra xem người dùng đã đăng ký khóa này chưa (nếu đã đăng nhập)
+        $isEnrolled = false;
+        if (isset($_SESSION['user_id'])) {
+            $isEnrolled = $this->enrollmentModel->isEnrolled($_SESSION['user_id'], $id);
+        }
+
+        require __DIR__ . '/../views/courses/detail.php';
     }
 
-    // 2. Mặc định là chưa đăng ký
-    $isEnrolled = false; 
-
-    // 3. Chỉ kiểm tra trạng thái đăng ký NẾU người dùng ĐÃ đăng nhập
-    if (isset($_SESSION['user_id'])) {
-        $isEnrolled = $this->enrollmentModel->isEnrolled($_SESSION['user_id'], $id);
-    }
-
-    // 4. Gọi View hiển thị
-    require __DIR__ . '/../views/courses/detail.php';
-}
     // 3. Xử lý đăng ký khóa học
     public function enroll() {
         // Kiểm tra đăng nhập
