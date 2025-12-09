@@ -83,6 +83,17 @@ class AuthController
             // Kiểm tra email tồn tại
             if ($this->userModel->emailExists()) {
                 $error = "Email này đã được sử dụng!";
+            $userModel = new User();
+            $userModel->username = $_POST['username'] ?? '';
+            $userModel->email    = $_POST['email'] ?? '';
+            $userModel->password = $_POST['password'] ?? '';
+            $userModel->fullname = $_POST['fullname'] ?? '';
+            $userModel->role     = (int)($_POST['role'] ?? 0); // 0=student, 1=instructor
+
+            if ($userModel->register()) {
+                // ĐĂNG KÝ THÀNH CÔNG → CHUYỂN VỀ LOGIN + HIỆN POPUP
+                header('Location: ../views/auth/login.php?register=success');
+                exit;
             } else {
                 if ($this->userModel->register()) {
                     // Redirect về trang login kèm thông báo
@@ -94,7 +105,7 @@ class AuthController
             }
         }
 
-        $title = "Đăng ký";
+        $title = "Đăng ký tài khoản";
         require __DIR__ . '/../views/auth/register.php';
     }
 
@@ -104,6 +115,7 @@ class AuthController
         session_destroy();
         // Về trang chủ hoặc trang login
         header('Location: ' . BASE_URL . '/auth/login');
+        header('Location: /onlinecourse');
         exit;
     }
 }

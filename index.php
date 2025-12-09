@@ -2,6 +2,8 @@
 // index.php – nằm trong htdocs/onlinecourse/index.php
 
 session_start();
+$base_url = "/onlinecourse_clone/CongNgheWeb_OnlineCourse";
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 

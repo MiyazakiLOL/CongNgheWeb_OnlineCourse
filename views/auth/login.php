@@ -7,12 +7,19 @@
             <div class="card shadow">
                 <div class="card-body p-5">
                     <h2 class="text-center mb-4">Chào mừng trở lại!</h2>
-                    
+
+                    <?php if (isset($_GET['register']) && $_GET['register'] === 'success'): ?>
+                        <!-- POPUP ĐĂNG KÝ THÀNH CÔNG -->
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <strong>Chúc mừng!</strong> Bạn đã đăng ký thành công!
+                        </div>
+                    <?php endif; ?>
+
                     <?php if (isset($error)): ?>
                         <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
                     <?php endif; ?>
 
-                    <form method="POST" action="">
+                    <form method="POST" action="auth/login">
                         <div class="mb-3">
                             <label class="form-label">Email</label>
                             <input type="email" name="email" class="form-control form-control-lg" required>
@@ -32,5 +39,18 @@
         </div>
     </div>
 </div>
+
+<!-- TỰ ĐỘNG TẮT POPUP SAU 4 GIÂY -->
+<?php if (isset($_GET['register']) && $_GET['register'] === 'success'): ?>
+<script>
+    setTimeout(() => {
+        const alertBox = document.querySelector('.alert');
+        if (alertBox) {
+            alertBox.classList.add('fade'); // hiệu ứng mờ
+            setTimeout(() => alertBox.remove(), 500); // xóa hẳn khỏi DOM
+        }
+    }, 4000);
+</script>
+<?php endif; ?>
 
 <?php include __DIR__ . '/../layouts/footer.php'; ?>

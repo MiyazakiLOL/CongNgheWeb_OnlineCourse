@@ -2,6 +2,7 @@
 // controllers/CourseController.php
 require_once __DIR__ . '/../config/Database.php';
 require_once __DIR__ . '/../models/Course.php';
+require_once __DIR__ . '/../models/Lesson.php';
 require_once __DIR__ . '/../models/Category.php';
 require_once __DIR__ . '/../models/Enrollment.php';
 
@@ -22,6 +23,48 @@ class CourseController {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
+
+        if (!isset($_SESSION['user']) || (isset($_SESSION['user']['role']) ? $_SESSION['user']['role'] != 1 : true)) {
+            $_SESSION['error'] = "Bạn không có quyền truy cập trang này.";
+            header('Location: /');
+            exit;
+        }
+    }
+
+    // Kiểm tra quyền sở hữu khóa học
+    private function checkCourseOwnership($owner_id, $user_id)
+    {
+        if ($owner_id === null || $user_id === null) {
+            return false;
+        }
+
+        return intval($owner_id) === intval($user_id);
+    }
+
+    // ============================
+    // 1. DANH SÁCH KHÓA HỌC CỦA GIẢNG VIÊN
+    // ============================
+    public function myCourses()
+    {
+        $this->checkInstructor();
+        $courseModel = new Course();
+
+        $instructor_id = $_SESSION['user']['id'];
+        $courses = $courseModel->getByInstructor($instructor_id);
+
+        require __DIR__ . '/../views/instructor/my_courses.php';
+    }
+
+    // Public listing so /course works for browsing
+    public function index()
+    {
+        $courseModel = new Course();
+        $categoryModel = new Category();
+
+        $courses = $courseModel->getAll();
+        $categories = $categoryModel->getAll();
+
+        require __DIR__ . '/../views/courses/index.php';
     }
 
     // 1. Hiển thị danh sách khóa học (có tìm kiếm)

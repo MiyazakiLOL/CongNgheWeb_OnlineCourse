@@ -19,6 +19,8 @@ include __DIR__ . '/../layouts/header.php';
             </div>
             <div class="col-lg-6 text-center d-none d-lg-block">
                 <img src="<?= BASE_URL ?>/assets/img/hero-illustration.svg" alt="Learning" class="img-fluid" style="max-height: 400px;">
+            <div class="col-lg-6 text-center">
+                <img src="assets/uploads/hero-illustration.jpg" alt="Learning" class="img-fluid" style="max-height: 400px;">
             </div>
         </div>
     </div>
@@ -60,6 +62,21 @@ include __DIR__ . '/../layouts/header.php';
                             
                             <?php if(rand(0,1)==1): ?>
                                 <span class="badge bg-warning text-dark position-absolute top-0 start-0 m-2">Bán chạy</span>
+                <div class="card course-card h-100">
+                    <img src="<?= $course['image'] ? '/assets/uploads/courses/'.$course['image'] : '/assets/img/course-default.jpg' ?>" 
+                         class="card-img-top course-img" alt="<?= $course['title'] ?>">
+                    <div class="card-body d-flex flex-column">
+                        <h6 class="card-title fw-bold"><?= htmlspecialchars($course['title']) ?></h6>
+                        <p class="text-muted small"><?= htmlspecialchars($course['instructor_name'] ?? ($course['instructor_display_name'] ?? 'Giảng viên')) ?></p>
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="rating me-2">4.8 ★</span>
+                            <span class="text-muted small">(<?= rand(100,5000) ?>)</span>
+                        </div>
+                        <div class="mt-auto">
+                            <?php $price = isset($course['price']) ? (float)$course['price'] : 0.0; ?>
+                            <span class="price-current"><?= number_format($price) ?>đ</span>
+                            <?php if($price > 200000): ?>
+                                <span class="price-original ms-2"><?= number_format($price * 2) ?>đ</span>
                             <?php endif; ?>
                         </div>
 
