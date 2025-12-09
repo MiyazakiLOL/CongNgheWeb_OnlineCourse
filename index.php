@@ -33,6 +33,12 @@ $base_path   = dirname($script_name);             // vd: /onlinecourse
 if ($base_path === '/' || $base_path === '\\') {
     $base_path = '';
 }
+// ---> THÊM DÒNG NÀY <---
+// Định nghĩa hằng số URL gốc để dùng trong View
+$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+$host = $_SERVER['HTTP_HOST'];
+define('BASE_URL', $protocol . "://" . $host . $base_path);
+// -----------------------
 
 // Cắt bỏ base path khỏi request_uri
 $uri = $request_uri;

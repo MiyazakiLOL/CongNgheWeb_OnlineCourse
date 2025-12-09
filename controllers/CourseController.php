@@ -1,15 +1,25 @@
 <?php
 // controllers/CourseController.php
+require_once __DIR__ . '/../config/Database.php';
 require_once __DIR__ . '/../models/Course.php';
 require_once __DIR__ . '/../models/Lesson.php';
 require_once __DIR__ . '/../models/Category.php';
-require_once __DIR__ . '/../models/Material.php';
-require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../models/Enrollment.php';
 
-class CourseController
-{
-    private function checkInstructor()
-    {
+class CourseController {
+    private $db;
+    private $courseModel;
+    private $categoryModel;
+    private $enrollmentModel;
+
+    public function __construct() {
+        $database = new Database();
+        $this->db = $database->connect() ;
+        $this->courseModel = new Course($this->db);
+        $this->categoryModel = new Category($this->db);
+        $this->enrollmentModel = new Enrollment($this->db);
+        
+        // Khởi động session nếu chưa có (để kiểm tra đăng nhập)
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
@@ -57,342 +67,64 @@ class CourseController
         require __DIR__ . '/../views/courses/index.php';
     }
 
-    // Public course detail so /course/detail/{id} works
-    public function detail($course_id)
-    {
-        $courseModel = new Course();
-        $lessonModel = new Lesson();
-        $materialModel = new Material();
+    // 1. Hiển thị danh sách khóa học (có tìm kiếm)
+    public function index() {
+        $keyword = isset($_GET['keyword']) ? $_GET['keyword'] : '';
+        $category_id = isset($_GET['category_id']) ? (int)$_GET['category_id'] : 0;
 
-        $course = $courseModel->getById($course_id);
+        $courses = $this->courseModel->getAll($keyword, $category_id);
+        $categories = $this->categoryModel->getAll();
 
-        if (!$course) {
-            http_response_code(404);
-            echo "<h1>404 - Khóa học không tồn tại</h1>";
-            exit;
-        }
-
-        $lessons = $lessonModel->getByCourse($course_id);
-        $materials = $materialModel->getByCourse($course_id);
-
-        require __DIR__ . '/../views/courses/detail.php';
+        require __DIR__ . '/../views/courses/index.php';
     }
 
-    // ============================
-    // 2. TẠO KHÓA HỌC
-    // ============================
-    public function create()
-    {
-        $this->checkInstructor();
-        $courseModel = new Course();
+    // 2. Hiển thị chi tiết khóa học
+// controllers/CourseController.php
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $courseModel->title = $_POST['title'] ?? '';
-            $courseModel->description = $_POST['description'] ?? '';
-            $courseModel->category_id = $_POST['category_id'] ?? '';
-            $courseModel->instructor_id = $_SESSION['user']['id'];
+public function detail($id = 0) {
+    // 1. Luôn luôn lấy thông tin khóa học (Bất kể đã đăng nhập hay chưa)
+    $course = $this->courseModel->getById($id);
 
-            if ($courseModel->create()) {
-                $_SESSION['success'] = "Khóa học đã được tạo thành công!";
-                header('Location: /course/myCourses');
-                exit;
-            } else {
-                $_SESSION['error'] = "Không thể tạo khóa học! Vui lòng kiểm tra lại thông tin.";
-            }
-        }
-
-        require __DIR__ . '/../views/instructor/course/create.php';
+    if (!$course) {
+        echo "Khóa học không tồn tại!";
+        return;
     }
 
-    // ============================
-    // 3. CHỈNH SỬA KHÓA HỌC
-    // ============================
-    public function edit($id)
-    {
-        $this->checkInstructor();
-        $courseModel = new Course();
+    // 2. Mặc định là chưa đăng ký
+    $isEnrolled = false; 
 
-        $course = $courseModel->getById($id);
-
-        // Kiểm tra khóa học tồn tại
-        if (!$course) {
-            $_SESSION['error'] = "Khóa học không tồn tại.";
-            header('Location: /course/myCourses');
-            exit;
-        }
-
-        // Kiểm tra quyền sở hữu khóa học
-        if (!$this->checkCourseOwnership($course['instructor_id'], $_SESSION['user']['id'])) {
-            $_SESSION['error'] = "Bạn không có quyền chỉnh sửa khóa học này.";
-            header('Location: /course/myCourses');
-            exit;
-        }
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $courseModel->title = $_POST['title'] ?? '';
-            $courseModel->description = $_POST['description'] ?? '';
-            $courseModel->category_id = $_POST['category_id'] ?? '';
-
-            if ($courseModel->update($id)) {
-                $_SESSION['success'] = "Khóa học đã được cập nhật thành công!";
-                header('Location: /course/myCourses');
-                exit;
-            } else {
-                $_SESSION['error'] = "Cập nhật khóa học thất bại! Vui lòng thử lại.";
-            }
-        }
-
-        require __DIR__ . '/../views/instructor/course/edit.php';
+    // 3. Chỉ kiểm tra trạng thái đăng ký NẾU người dùng ĐÃ đăng nhập
+    if (isset($_SESSION['user_id'])) {
+        $isEnrolled = $this->enrollmentModel->isEnrolled($_SESSION['user_id'], $id);
     }
 
-    // ============================
-    // 4. XÓA KHÓA HỌC
-    // ============================
-    public function delete($id)
-    {
-        $this->checkInstructor();
-        $courseModel = new Course();
-        $lessonModel = new Lesson();
-
-        $course = $courseModel->getById($id);
-        
-        // Kiểm tra khóa học tồn tại
-        if (!$course) {
-            $_SESSION['error'] = "Khóa học không tồn tại.";
-            header('Location: /course/myCourses');
-            exit;
+    // 4. Gọi View hiển thị
+    require __DIR__ . '/../views/courses/detail.php';
+}
+    // 3. Xử lý đăng ký khóa học
+    public function enroll() {
+        // Kiểm tra đăng nhập
+        if (!isset($_SESSION['user_id'])) {
+            // Nếu chưa đăng nhập, chuyển hướng về trang login
+            header("Location: index.php?controller=auth&action=login");
+            exit();
         }
 
-        // Kiểm tra quyền sở hữu khóa học
-        if (!$this->checkCourseOwnership($course['instructor_id'], $_SESSION['user']['id'])) {
-            $_SESSION['error'] = "Bạn không có quyền xóa khóa học này.";
-            header('Location: /course/myCourses');
-            exit;
+        $course_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $student_id = $_SESSION['user_id'];
+
+        // Kiểm tra xem đã đăng ký chưa
+        if ($this->enrollmentModel->isEnrolled($student_id, $course_id)) {
+            echo "<script>alert('Bạn đã đăng ký khóa học này rồi!'); window.history.back();</script>";
+            return;
         }
 
-        // Xóa liên tầng: lessons -> materials -> course
-        try {
-            // 1. Lấy tất cả bài học của khóa học
-            $lessons = $lessonModel->getByCourse($id);
-            
-            // 2. Xóa materials của từng bài học (nếu có)
-            // Dùng SQL trực tiếp để xóa nhanh
-            require_once __DIR__ . '/../models/Material.php';
-            $materialModel = new Material();
-            $materials = $materialModel->getByCourse($id);
-            foreach ($materials as $material) {
-                $materialModel->delete($material['id']);
-            }
-            
-            // 3. Xóa tất cả bài học của khóa học
-            foreach ($lessons as $lesson) {
-                $lessonModel->delete($lesson['id']);
-            }
-            
-            // 4. Xóa khóa học
-            if ($courseModel->delete($id)) {
-                $_SESSION['success'] = "Khóa học và tất cả nội dung liên quan đã được xóa thành công!";
-            } else {
-                $_SESSION['error'] = "Không thể xóa khóa học. Vui lòng thử lại.";
-            }
-        } catch (Exception $e) {
-            $_SESSION['error'] = "Lỗi khi xóa khóa học: " . $e->getMessage();
-        }
-
-        header('Location: /course/myCourses');
-        exit;
-    }
-
-    // ============================
-    // 5. QUẢN LÝ BÀI HỌC
-    // ============================
-    public function lessons($course_id)
-    {
-        $this->checkInstructor();
-        $lessonModel = new Lesson();
-        $courseModel = new Course();
-
-        $course = $courseModel->getById($course_id);
-
-        // Kiểm tra khóa học tồn tại
-        if (!$course) {
-            $_SESSION['error'] = "Khóa học không tồn tại.";
-            header('Location: /course/myCourses');
-            exit;
-        }
-
-        // Kiểm tra quyền sở hữu khóa học
-        if (!$this->checkCourseOwnership($course['instructor_id'], $_SESSION['user']['id'])) {
-            $_SESSION['error'] = "Bạn không có quyền xem bài học của khóa học này.";
-            header('Location: /course/myCourses');
-            exit;
-        }
-
-        $lessons = $lessonModel->getByCourse($course_id);
-
-        require __DIR__ . '/../views/instructor/lessons/manage.php';
-    }
-
-    // ============================
-    // 5.5 MATERIALS TRONG LESSON (TÀI LIỆU CHO KHÓA HỌC)
-    // ============================
-    public function materials($course_id)
-    {
-        $this->checkInstructor();
-        $courseModel = new Course();
-
-        $course = $courseModel->getById($course_id);
-
-        if (!$course) {
-            $_SESSION['error'] = "Khóa học không tồn tại.";
-            header('Location: /course/myCourses');
-            exit;
-        }
-
-        if (!$this->checkCourseOwnership($course['instructor_id'], $_SESSION['user']['id'])) {
-            $_SESSION['error'] = "Bạn không có quyền xem tài liệu của khóa học này.";
-            header('Location: /course/myCourses');
-            exit;
-        }
-
-        // Chuyển hướng tới MaterialController::list
-        header("Location: /material/list/{$course_id}");
-        exit;
-    }
-
-    // ============================
-    // 6. TẠO BÀI HỌC
-    // ============================
-    public function createLesson($course_id)
-    {
-        $this->checkInstructor();
-        $lessonModel = new Lesson();
-        $courseModel = new Course();
-
-        $course = $courseModel->getById($course_id);
-        
-        // Kiểm tra khóa học tồn tại
-        if (!$course) {
-            $_SESSION['error'] = "Khóa học không tồn tại.";
-            header('Location: /course/myCourses');
-            exit;
-        }
-
-        // Kiểm tra quyền sở hữu khóa học
-        if (!$this->checkCourseOwnership($course['instructor_id'], $_SESSION['user']['id'])) {
-            $_SESSION['error'] = "Bạn không có quyền tạo bài học cho khóa học này.";
-            header('Location: /course/myCourses');
-            exit;
-        }
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $lessonModel->course_id = $course_id;
-            $lessonModel->title = $_POST['title'] ?? '';
-            $lessonModel->content = $_POST['content'] ?? '';
-
-            if ($lessonModel->create()) {
-                $_SESSION['success'] = "Bài học đã được tạo thành công!";
-                header("Location: /course/lessons/$course_id");
-                exit;
-            } else {
-                $_SESSION['error'] = "Không thể tạo bài học! Vui lòng kiểm tra lại thông tin.";
-            }
-        }
-
-        require __DIR__ . '/../views/instructor/lessons/create.php';
-    }
-
-    // ============================
-    // 7. CHỈNH SỬA BÀI HỌC
-    // ============================
-    public function editLesson($id)
-    {
-        $this->checkInstructor();
-        $lessonModel = new Lesson();
-        $courseModel = new Course();
-
-        $lesson = $lessonModel->getById($id);
-        
-        // Kiểm tra bài học tồn tại
-        if (!$lesson) {
-            $_SESSION['error'] = "Bài học không tồn tại.";
-            header('Location: /course/myCourses');
-            exit;
-        }
-
-        $course = $courseModel->getById($lesson['course_id']);
-        
-        // Kiểm tra khóa học tồn tại
-        if (!$course) {
-            $_SESSION['error'] = "Khóa học không tồn tại.";
-            header('Location: /course/myCourses');
-            exit;
-        }
-
-        // Kiểm tra quyền sở hữu khóa học
-        if (!$this->checkCourseOwnership($course['instructor_id'], $_SESSION['user']['id'])) {
-            $_SESSION['error'] = "Bạn không có quyền chỉnh sửa bài học này.";
-            header('Location: /course/myCourses');
-            exit;
-        }
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $lessonModel->title = $_POST['title'] ?? '';
-            $lessonModel->content = $_POST['content'] ?? '';
-
-            if ($lessonModel->update($id)) {
-                $_SESSION['success'] = "Bài học đã được cập nhật thành công!";
-                header("Location: /course/lessons/" . $lesson['course_id']);
-                exit;
-            } else {
-                $_SESSION['error'] = "Cập nhật bài học thất bại! Vui lòng thử lại.";
-            }
-        }
-
-        require __DIR__ . '/../views/instructor/lessons/edit.php';
-    }
-
-    // ============================
-    // 8. XÓA BÀI HỌC
-    // ============================
-    public function deleteLesson($id)
-    {
-        $this->checkInstructor();
-        $lessonModel = new Lesson();
-        $courseModel = new Course();
-
-        $lesson = $lessonModel->getById($id);
-        
-        // Kiểm tra bài học tồn tại
-        if (!$lesson) {
-            $_SESSION['error'] = "Bài học không tồn tại.";
-            header('Location: /course/myCourses');
-            exit;
-        }
-
-        $course = $courseModel->getById($lesson['course_id']);
-        
-        // Kiểm tra khóa học tồn tại
-        if (!$course) {
-            $_SESSION['error'] = "Khóa học không tồn tại.";
-            header('Location: /course/myCourses');
-            exit;
-        }
-
-        // Kiểm tra quyền sở hữu khóa học
-        if (!$this->checkCourseOwnership($course['instructor_id'], $_SESSION['user']['id'])) {
-            $_SESSION['error'] = "Bạn không có quyền xóa bài học này.";
-            header('Location: /course/myCourses');
-            exit;
-        }
-
-        if ($lessonModel->delete($id)) {
-            $_SESSION['success'] = "Bài học đã được xóa thành công!";
+        // Thực hiện đăng ký
+        if ($this->enrollmentModel->enroll($student_id, $course_id)) {
+            echo "<script>alert('Đăng ký thành công!'); window.location.href='index.php?controller=student&action=my_courses';</script>";
         } else {
-            $_SESSION['error'] = "Không thể xóa bài học. Vui lòng thử lại.";
+            echo "Có lỗi xảy ra, vui lòng thử lại.";
         }
-
-        header("Location: /course/lessons/" . $lesson['course_id']);
-        exit;
     }
-}  
+}
+?>

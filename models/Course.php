@@ -1,157 +1,101 @@
 <?php
 require_once __DIR__ . '/../config/Database.php';
 
-class Course
-{
+class Course {
+
     private $conn;
-    private $table = "courses";
+    private $table = 'courses';
 
     public $id;
-    public $title;
+    public $name;
     public $description;
-    public $category_id;
-    public $instructor_id;
-    public $error; // last error message
+    public $created_at;
 
-    public function __construct()
-    {
-        $db = new Database();
-        $this->conn = $db->connect();
-    }
-
-    // Lấy tất cả khóa học (cho sinh viên xem)
-    public function getAll()
-    {
-        try {
-            $sql = "SELECT * FROM {$this->table} ORDER BY id DESC";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->execute();
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) {
-            $this->error = $e->getMessage();
-            return [];
+    // Sửa constructor: nhận optional PDO $db (injection từ Controller) hoặc tự tạo Database nếu không có
+    public function __construct($db = null) {
+        if ($db instanceof PDO) {
+            $this->conn = $db;
+        } else {
+            $database = new Database();
+            $this->conn = $database->connect();
         }
     }
-
-    // Lấy toàn bộ khóa học theo giảng viên
-    public function getByInstructor($instructor_id)
-    {
-        try {
-            $sql = "SELECT * FROM {$this->table} WHERE instructor_id = ?";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->execute([$instructor_id]);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) {
-            $this->error = $e->getMessage();
-            return [];
-        }
+   
+//1. Hàm lấy danh sách khóa học nổi bật (Sửa lỗi Fatal Error của bạn tại đây)
+    public function getFeaturedCourses() {
+        // Logic: Lấy 4 khóa học có giá cao nhất làm "Nổi bật" (hoặc bạn có thể order by view/student count)
+        $query = "SELECT c.*, u.fullname as instructor_name, cat.name as category_name 
+                  FROM " . $this->table . " c
+                  LEFT JOIN users u ON c.instructor_id = u.id
+                  LEFT JOIN categories cat ON c.category_id = cat.id
+                  ORDER BY c.price DESC LIMIT 4";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Lấy 1 khóa học theo id
-    public function getById($id)
-    {
-        try {
-            $sql = "SELECT * FROM {$this->table} WHERE id = ? LIMIT 1";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->execute([$id]);
-            return $stmt->fetch(PDO::FETCH_ASSOC);
-        } catch (Exception $e) {
-            $this->error = $e->getMessage();
-            return null;
-        }
+    // 2. Hàm lấy khóa học mới nhất (Dùng cho Trang chủ)
+    public function getLatestCourses($limit = 6) {
+        $query = "SELECT c.*, u.fullname as instructor_name, cat.name as category_name 
+                  FROM " . $this->table. " c
+                  LEFT JOIN users u ON c.instructor_id = u.id
+                  LEFT JOIN categories cat ON c.category_id = cat.id
+                  ORDER BY c.created_at DESC LIMIT :limit";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Lấy các khóa học nổi bật (nếu không có cột featured, trả về latest)
-    public function getFeaturedCourses($limit = 6)
-    {
-        try {
-            // Ưu tiên lấy các khóa học có cột `featured` = 1 nếu tồn tại
-            // Nếu không, fallback về latest courses
-            $limit = (int)$limit;
+// models/Course.php (Bổ sung thêm vào class cũ)
 
-            // Thử truy vấn khóa học được đánh dấu featured
-            $sql = "SELECT * FROM {$this->table} WHERE featured = 1 ORDER BY updated_at DESC LIMIT $limit";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->execute();
-            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            if (!empty($results)) {
-                return $results;
-            }
+    // 1. Hàm tìm kiếm và lọc danh sách khóa học
+    public function getAll($keyword = "", $category_id = 0) {
+        $query = "SELECT c.*, u.fullname as instructor_name, cat.name as category_name 
+                  FROM " . $this->table . " c
+                  LEFT JOIN users u ON c.instructor_id = u.id
+                  LEFT JOIN categories cat ON c.category_id = cat.id
+                  WHERE 1=1"; // Kỹ thuật này giúp nối chuỗi AND dễ dàng hơn
 
-            // Nếu không có khóa học featured, trả về latest
-            return $this->getLatestCourses($limit);
-        } catch (Exception $e) {
-            // Nếu truy vấn featured lỗi (ví dụ không có cột `featured`), fallback an toàn
-            return $this->getLatestCourses($limit);
+        if (!empty($keyword)) {
+            $query .= " AND c.title LIKE :keyword";
         }
+
+        if ($category_id > 0) {
+            $query .= " AND c.category_id = :cat_id";
+        }
+
+        $query .= " ORDER BY c.created_at DESC";
+
+        $stmt = $this->conn->prepare($query);
+
+        if (!empty($keyword)) {
+            $keyword = "%{$keyword}%";
+            $stmt->bindValue(':keyword', $keyword);
+        }
+        if ($category_id > 0) {
+            $stmt->bindValue(':cat_id', $category_id);
+        }
+
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Lấy khóa học mới nhất
-    public function getLatestCourses($limit = 6)
-    {
-        try {
-            $limit = (int)$limit;
-            $sql = "SELECT * FROM {$this->table} ORDER BY created_at DESC LIMIT $limit";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->execute();
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) {
-            $this->error = $e->getMessage();
-            return [];
-        }
-    }
+    // 2. Lấy chi tiết một khóa học theo ID
+    public function getById($id) {
+        $query = "SELECT c.*, u.fullname as instructor_name, cat.name as category_name 
+                  FROM " . $this->table . " c
+                  LEFT JOIN users u ON c.instructor_id = u.id
+                  LEFT JOIN categories cat ON c.category_id = cat.id
+                  WHERE c.id = :id LIMIT 1";
 
-    // Tạo khóa học
-    public function create()
-    {
-        try {
-            $sql = "INSERT INTO {$this->table} (title, description, category_id, instructor_id, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, NOW(), NOW())";
-            $stmt = $this->conn->prepare($sql);
-            return $stmt->execute([
-                $this->title,
-                $this->description,
-                $this->category_id,
-                $this->instructor_id
-            ]);
-        } catch (Exception $e) {
-            $this->error = $e->getMessage();
-            return false;
-        }
-    }
-
-    // Cập nhật khóa học
-    public function update($id)
-    {
-        try {
-            $sql = "UPDATE {$this->table}
-                    SET title = ?, description = ?, category_id = ?, updated_at = NOW()
-                    WHERE id = ?";
-            $stmt = $this->conn->prepare($sql);
-
-            return $stmt->execute([
-                $this->title,
-                $this->description,
-                $this->category_id,
-                $id
-            ]);
-        } catch (Exception $e) {
-            $this->error = $e->getMessage();
-            return false;
-        }
-    }
-
-    // Xóa khóa học
-    public function delete($id)
-    {
-        try {
-            $sql = "DELETE FROM {$this->table} WHERE id = ?";
-            $stmt = $this->conn->prepare($sql);
-            return $stmt->execute([$id]);
-        } catch (Exception $e) {
-            $this->error = $e->getMessage();
-            return false;
-        }
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindValue(':id', $id);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 }
+

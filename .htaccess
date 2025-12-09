@@ -1,6 +1,6 @@
 # .htaccess – nằm trong htdocs/onlinecourse/.htaccess
 RewriteEngine On
-RewriteBase /onlinecourse/
+RewriteBase /CongNgheWeb_OnlineCourse/
 
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
