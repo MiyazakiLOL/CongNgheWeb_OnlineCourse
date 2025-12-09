@@ -44,7 +44,7 @@ if ($base_path !== '' && strpos($request_uri, $base_path) === 0) {
     $uri = substr($request_uri, strlen($base_path));
 }
 $uri = trim($uri, '/');
-if ($uri === 'index.php') $uri = ''; // tránh trường hợp truy cập trực tiếp index.php
+$uri = str_replace('.php', '', $uri);$uri = str_replace('.php', '', $uri);// tránh trường hợp truy cập trực tiếp index.php
 
 // Nếu vẫn rỗng → trang chủ
 if ($uri === '') {
