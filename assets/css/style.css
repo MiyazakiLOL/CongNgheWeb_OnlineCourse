@@ -196,3 +196,93 @@ a { text-decoration: none; color: inherit; }
 }
 .course-meta span { display: flex; align-items: center; gap: 5px; }
 .course-meta i { font-size: 12px; }
+/* --- COURSE DETAIL PAGE --- */
+
+.course-detail-title {
+    font-size: 2rem;
+    color: #242424;
+}
+
+/* Sidebar dính khi cuộn trang */
+.course-sidebar {
+    transition: all 0.3s;
+}
+
+/* Nút Play trên ảnh preview */
+.bi-play-circle-fill {
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+.bi-play-circle-fill:hover {
+    transform: scale(1.1);
+    opacity: 1 !important;
+}
+
+/* Accordion nội dung bài học */
+.accordion-button:not(.collapsed) {
+    color: #0d6efd;
+    background-color: #e7f1ff;
+}
+.accordion-button:focus {
+    box-shadow: none;
+    border-color: rgba(0,0,0,.125);
+}
+
+/* List group trong accordion */
+.list-group-item {
+    font-size: 14px;
+    padding: 12px 15px;
+    border-left: none;
+    border-right: none;
+}
+.list-group-item:first-child { border-top: none; }
+.list-group-item i.bi-play-circle {
+    color: #f05123; /* Màu cam F8 */
+    /* --- TRANG CHỦ MỚI --- */
+
+/* Hero Section (Banner) */
+.hero-udemy {
+    /* Tạo màu nền Gradient đẹp mắt */
+    background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
+    position: relative;
+}
+
+/* Category Box */
+.category-btn {
+    background: #fff;
+    border-radius: 8px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+.category-btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    border-color: #007bff !important;
+}
+
+/* Course Card Logic */
+.course-link-wrapper {
+    transition: transform 0.2s ease;
+}
+.course-link-wrapper:hover {
+    transform: translateY(-5px);
+}
+
+.course-card {
+    transition: box-shadow 0.2s;
+    overflow: hidden; /* Để bo góc ảnh */
+}
+.course-link-wrapper:hover .course-card {
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+}
+
+/* Cắt chữ tiêu đề nếu quá dài (2 dòng) */
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 2.8em; /* Chiều cao cố định cho 2 dòng */
+    line-height: 1.4em;
+}
+}

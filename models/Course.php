@@ -4,17 +4,22 @@ require_once __DIR__ . '/../config/Database.php';
 
 class Course {
 
-        private $conn;
-        private $table = 'courses';
+    private $conn;
+    private $table = 'courses';
 
     public $id;
     public $name;
     public $description;
     public $created_at;
 
-    public function __construct() {
-        $database = new Database();
-        $this->conn = $database->connect();
+    // Sửa constructor: nhận optional PDO $db (injection từ Controller) hoặc tự tạo Database nếu không có
+    public function __construct($db = null) {
+        if ($db instanceof PDO) {
+            $this->conn = $db;
+        } else {
+            $database = new Database();
+            $this->conn = $database->connect();
+        }
     }
    
 //1. Hàm lấy danh sách khóa học nổi bật (Sửa lỗi Fatal Error của bạn tại đây)
@@ -95,4 +100,3 @@ class Course {
     }
 }
 
-    

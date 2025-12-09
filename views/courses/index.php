@@ -1,10 +1,3 @@
-<?php
-echo "<pre>";
-var_dump($courses); // In thử dữ liệu ra màn hình
-echo "</pre>";
-die(); // Dừng chương trình tại đây để xem
-?>
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
