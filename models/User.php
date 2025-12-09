@@ -62,5 +62,18 @@ class User {
         $stmt->bindParam(':id', $id, PDO::PARAM_INT);
         return $stmt->execute();
     }
+
+    // Lấy user theo id
+    public function getById($id)
+    {
+        try {
+            $query = "SELECT id, username, email, fullname, role, created_at FROM " . $this->table . " WHERE id = ? LIMIT 1";
+            $stmt = $this->conn->prepare($query);
+            $stmt->execute([$id]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            return null;
+        }
+    }
 }
 ?>

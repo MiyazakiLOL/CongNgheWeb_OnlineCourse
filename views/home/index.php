@@ -51,15 +51,16 @@
                          class="card-img-top course-img" alt="<?= $course['title'] ?>">
                     <div class="card-body d-flex flex-column">
                         <h6 class="card-title fw-bold"><?= htmlspecialchars($course['title']) ?></h6>
-                        <p class="text-muted small"><?= $course['instructor_name'] ?></p>
+                        <p class="text-muted small"><?= htmlspecialchars($course['instructor_name'] ?? ($course['instructor_display_name'] ?? 'Giảng viên')) ?></p>
                         <div class="d-flex align-items-center mb-2">
                             <span class="rating me-2">4.8 ★</span>
                             <span class="text-muted small">(<?= rand(100,5000) ?>)</span>
                         </div>
                         <div class="mt-auto">
-                            <span class="price-current"><?= number_format($course['price']) ?>đ</span>
-                            <?php if($course['price'] > 200000): ?>
-                                <span class="price-original ms-2"><?= number_format($course['price'] * 2) ?>đ</span>
+                            <?php $price = isset($course['price']) ? (float)$course['price'] : 0.0; ?>
+                            <span class="price-current"><?= number_format($price) ?>đ</span>
+                            <?php if($price > 200000): ?>
+                                <span class="price-original ms-2"><?= number_format($price * 2) ?>đ</span>
                             <?php endif; ?>
                         </div>
                         <?php if(rand(0,2)==1): ?><span class="bestseller-badge">Bán chạy</span><?php endif; ?>
