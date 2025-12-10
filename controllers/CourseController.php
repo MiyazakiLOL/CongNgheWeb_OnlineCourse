@@ -36,7 +36,7 @@ class CourseController {
     }
 
     // 2. Hiển thị chi tiết khóa học
-public function detail($id = null) {
+    public function detail($id = null) {
         
         // Logic: Nếu Router chưa truyền ID (hoặc null), thì thử tìm trong $_GET (phòng hờ)
         if (!$id && isset($_GET['id'])) {

@@ -1,6 +1,3 @@
-/* assets/css/style.css */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
 body {
     font-family: 'Inter', sans-serif;
     line-height: 1.6;
@@ -181,7 +178,6 @@ a { text-decoration: none; color: inherit; }
     font-size: 16px; font-weight: 600; line-height: 1.4;
     margin-bottom: 8px;
     /* Giới hạn 2 dòng, thừa thì hiện dấu ... */
-    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
     overflow: hidden; color: #292929;
 }
 
@@ -279,7 +275,6 @@ a { text-decoration: none; color: inherit; }
 /* Cắt chữ tiêu đề nếu quá dài (2 dòng) */
 .text-truncate-2 {
     display: -webkit-box;
-    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     height: 2.8em; /* Chiều cao cố định cho 2 dòng */

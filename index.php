@@ -2,10 +2,10 @@
 // index.php – nằm trong htdocs/onlinecourse/index.php
 
 session_start();
-$base_url = "/onlinecourse_clone/CongNgheWeb_OnlineCourse";
-
-error_reporting(E_ALL);
+define('BASE_URL', '/onlinecourse');
 ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 // Autoload
 spl_autoload_register(function ($class) {
@@ -33,12 +33,6 @@ $base_path   = dirname($script_name);             // vd: /onlinecourse
 if ($base_path === '/' || $base_path === '\\') {
     $base_path = '';
 }
-// ---> THÊM DÒNG NÀY <---
-// Định nghĩa hằng số URL gốc để dùng trong View
-$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
-$host = $_SERVER['HTTP_HOST'];
-define('BASE_URL', $protocol . "://" . $host . $base_path);
-// -----------------------
 
 // Cắt bỏ base path khỏi request_uri
 $uri = $request_uri;
@@ -46,7 +40,7 @@ if ($base_path !== '' && strpos($request_uri, $base_path) === 0) {
     $uri = substr($request_uri, strlen($base_path));
 }
 $uri = trim($uri, '/');
-$uri = str_replace('.php', '', $uri);$uri = str_replace('.php', '', $uri);// tránh trường hợp truy cập trực tiếp index.php
+if ($uri === 'index.php') $uri = ''; // tránh trường hợp truy cập trực tiếp index.php
 
 // Nếu vẫn rỗng → trang chủ
 if ($uri === '') {
@@ -75,6 +69,18 @@ if (!method_exists($instance, $method)) {
     http_response_code(404);
     echo "<h1>404 Not Found</h1><p>Phương thức <strong>$method</strong> không tồn tại trong $controller.</p>";
     exit;
+}
+
+if ($controller == 'InstructorController') {
+    if ($method == 'courses') {
+        if (isset($params[0]) && $params[0] == 'create') {
+            $instance->createCourse();
+        } elseif (isset($params[0]) && $params[0] == 'edit' && isset($params[1])) {
+            $instance->editCourse($params[1]);
+        }
+    } else {
+        $instance->dashboard();
+    }
 }
 
 // Gọi hàm

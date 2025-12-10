@@ -1,4 +1,7 @@
 <?php
+// models/Enrollment.php
+require_once __DIR__ . '/../config/Database.php';
+
 class Enrollment {
     private $conn;
     private $table = 'enrollments';
@@ -37,8 +40,8 @@ class Enrollment {
     $stmt->bindParam(':student_id', $student_id, PDO::PARAM_INT);
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
-// Kiểm tra xem học viên đã đăng ký khóa này chưa
+    }
+
     public function isEnrolled($student_id, $course_id) {
         $query = "SELECT id FROM " . $this->table . " 
                   WHERE student_id = :student_id AND course_id = :course_id LIMIT 1";
@@ -61,6 +64,5 @@ class Enrollment {
         
         return $stmt->execute();
     }
-
 }
-
+?>

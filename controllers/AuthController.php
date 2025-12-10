@@ -1,64 +1,32 @@
 <?php
 // controllers/AuthController.php
-
-// 1. Nhúng Database và Model
-require_once __DIR__ . '/../config/Database.php';
 require_once __DIR__ . '/../models/User.php';
 
 class AuthController
 {
-    private $db;
-    private $userModel;
-
-    public function __construct()
-    {
-        // 2. Khởi tạo kết nối Database
-        $database = new Database();
-        $this->db = $database->connect();
-
-        // 3. Truyền kết nối vào Model User
-        $this->userModel = new User($this->db);
-
-        // Khởi động session nếu chưa có
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-    }
-
     public function login()
     {
-        $error = '';
-
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Gán dữ liệu từ Form vào Model
-            $this->userModel->email = $_POST['email'] ?? '';
-            $this->userModel->password = $_POST['password'] ?? '';
+            $userModel = new User();
+            $userModel->email = $_POST['email'] ?? '';
+            $userModel->password = $_POST['password'] ?? '';
 
-            // Gọi hàm login bên Model
-            $user = $this->userModel->login();
+            $user = $userModel->login();
 
             if ($user) {
-                // Lưu session
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['role'] = $user['role'];
-                $_SESSION['fullname'] = $user['fullname'];
-                $_SESSION['avatar'] = $user['avatar'] ?? 'default.png';
-
-                // 4. REDIRECT ĐÚNG CHUẨN MVC (Dùng BASE_URL)
-                // Không trỏ thẳng vào file view (.php)
+                $_SESSION['user'] = $user;
+                // Redirect theo role
                 switch ($user['role']) {
-                    case 2: // Admin
-                        header('Location: ' . BASE_URL . '/admin/dashboard');
-                        break;
-                    case 1: // Instructor
-                        header('Location: ' . BASE_URL . '/instructor/dashboard');
-                        break;
-                    case 0: // Student
-                    default:
-                        header('Location: ' . BASE_URL . '/student/dashboard'); // Hoặc về trang chủ '/'
-                        break;
+                    case 2:
+                        header('Location: ../views/admin/dashboard.php');
+                        exit;
+                    case 1:
+                        header('Location: ../views/instructor/dashboard.php');
+                        exit;
+                    case 0:
+                        header('Location: ../views/student/dashboard.php');
+                        exit;
                 }
-                exit;
             } else {
                 $error = "Email hoặc mật khẩu không đúng!";
             }
@@ -70,19 +38,7 @@ class AuthController
 
     public function register()
     {
-        $error = '';
-        $success = '';
-
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->userModel->username = $_POST['username'] ?? '';
-            $this->userModel->email    = $_POST['email'] ?? '';
-            $this->userModel->password = $_POST['password'] ?? ''; // Pass thô
-            $this->userModel->fullname = $_POST['fullname'] ?? '';
-            $this->userModel->role     = (int)($_POST['role'] ?? 0);
-
-            // Kiểm tra email tồn tại
-            if ($this->userModel->emailExists()) {
-                $error = "Email này đã được sử dụng!";
             $userModel = new User();
             $userModel->username = $_POST['username'] ?? '';
             $userModel->email    = $_POST['email'] ?? '';
@@ -95,13 +51,7 @@ class AuthController
                 header('Location: ../views/auth/login.php?register=success');
                 exit;
             } else {
-                if ($this->userModel->register()) {
-                    // Redirect về trang login kèm thông báo
-                    header('Location: ' . BASE_URL . '/auth/login?success=1');
-                    exit;
-                } else {
-                    $error = "Đăng ký thất bại! Vui lòng thử lại.";
-                }
+                $error = "Đăng ký thất bại! Email hoặc username đã tồn tại.";
             }
         }
 
@@ -111,12 +61,9 @@ class AuthController
 
     public function logout()
     {
-        // Xóa sạch session
+        session_start();
         session_destroy();
-        // Về trang chủ hoặc trang login
-        header('Location: ' . BASE_URL . '/auth/login');
         header('Location: /onlinecourse');
         exit;
     }
 }
-?>
