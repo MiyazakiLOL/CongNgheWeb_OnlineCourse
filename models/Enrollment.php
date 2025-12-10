@@ -1,4 +1,4 @@
-
+<?php
 class Enrollment {
     private $conn;
     private $table = 'enrollments';
@@ -63,4 +63,4 @@ class Enrollment {
     }
 
 }
-?>
+
