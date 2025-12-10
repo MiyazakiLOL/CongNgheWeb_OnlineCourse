@@ -49,75 +49,64 @@ include __DIR__ . '/../layouts/header.php';
         <h3 class="fw-bold mb-4">Khóa học nổi bật</h3>
         <div class="row g-4">
             <?php foreach ($featuredCourses as $course): ?>
-            <div class="col-lg-3 col-md-6">
+<div class="col-lg-3 col-md-6 mb-4"> <a href="<?= BASE_URL ?>/course/detail/<?= $course['id'] ?>" class="text-decoration-none text-dark d-block h-100 course-link-wrapper">
+        <div class="card course-card h-100 border-0 shadow-sm transition-hover">
+            
+            <div class="position-relative">
+                <img src="<?= BASE_URL ?>/assets/uploads/courses/<?= !empty($course['image']) ? $course['image'] : 'default-course.png' ?>" 
+                     class="card-img-top course-img" 
+                     alt="<?= htmlspecialchars($course['title']) ?>"
+                     style="height: 180px; object-fit: cover;">
                 
-                <a href="<?= BASE_URL ?>/course/detail/<?= $course['id'] ?>" class="text-decoration-none text-dark d-block h-100 course-link-wrapper">
-                    <div class="card course-card h-100 border-0 shadow-sm">
-                        
-                        <div class="position-relative">
-                            <img src="<?= BASE_URL ?>/assets/uploads/courses/<?= !empty($course['image']) ? $course['image'] : 'default-course.png' ?>" 
-                                 class="card-img-top course-img" 
-                                 alt="<?= htmlspecialchars($course['title']) ?>"
-                                 style="height: 180px; object-fit: cover;">
-                            
-                            <?php if(rand(0,1)==1): ?>
-                                <span class="badge bg-warning text-dark position-absolute top-0 start-0 m-2">Bán chạy</span>
-                <div class="card course-card h-100">
-                    <img src="<?= $course['image'] ? '/assets/uploads/courses/'.$course['image'] : '/assets/img/course-default.jpg' ?>" 
-                         class="card-img-top course-img" alt="<?= $course['title'] ?>">
-                    <div class="card-body d-flex flex-column">
-                        <h6 class="card-title fw-bold"><?= htmlspecialchars($course['title']) ?></h6>
-                        <p class="text-muted small"><?= htmlspecialchars($course['instructor_name'] ?? ($course['instructor_display_name'] ?? 'Giảng viên')) ?></p>
-                        <div class="d-flex align-items-center mb-2">
-                            <span class="rating me-2">4.8 ★</span>
-                            <span class="text-muted small">(<?= rand(100,5000) ?>)</span>
-                        </div>
-                        <div class="mt-auto">
-                            <?php $price = isset($course['price']) ? (float)$course['price'] : 0.0; ?>
-                            <span class="price-current"><?= number_format($price) ?>đ</span>
-                            <?php if($price > 200000): ?>
-                                <span class="price-original ms-2"><?= number_format($price * 2) ?>đ</span>
-                            <?php endif; ?>
-                        </div>
-
-                        <div class="card-body d-flex flex-column">
-                            <h6 class="card-title fw-bold text-truncate-2" title="<?= htmlspecialchars($course['title']) ?>">
-                                <?= htmlspecialchars($course['title']) ?>
-                            </h6>
-                            
-                            <p class="text-muted small mb-2">
-                                <i class="bi bi-person-circle me-1"></i>
-                                <?= htmlspecialchars($course['instructor_name'] ?? 'Giảng viên') ?>
-                            </p>
-                            
-                            <div class="d-flex align-items-center mb-2">
-                                <span class="fw-bold text-warning me-1">4.8</span>
-                                <i class="bi bi-star-fill text-warning small"></i>
-                                <i class="bi bi-star-fill text-warning small"></i>
-                                <i class="bi bi-star-fill text-warning small"></i>
-                                <i class="bi bi-star-fill text-warning small"></i>
-                                <i class="bi bi-star-half text-warning small"></i>
-                                <span class="text-muted small ms-2">(<?= rand(100,5000) ?>)</span>
-                            </div>
-                            
-                            <div class="mt-auto d-flex align-items-center">
-                                <?php if($course['price'] == 0): ?>
-                                    <span class="fw-bold text-success fs-5">Miễn phí</span>
-                                <?php else: ?>
-                                    <span class="fw-bold fs-5"><?= number_format($course['price']) ?>đ</span>
-                                    <?php if($course['price'] > 0): ?>
-                                        <span class="text-muted text-decoration-line-through ms-2 small">
-                                            <?= number_format($course['price'] * 1.3) ?>đ
-                                        </span>
-                                    <?php endif; ?>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
+                <?php if(rand(0,1)==1): ?>
+                    <span class="badge bg-warning text-dark position-absolute top-0 start-0 m-2">Bán chạy</span>
+                <?php endif; ?>
             </div>
-            <?php endforeach; ?>
+
+            <div class="card-body d-flex flex-column">
+                <h6 class="card-title fw-bold text-truncate-2" title="<?= htmlspecialchars($course['title']) ?>">
+                    <?= htmlspecialchars($course['title']) ?>
+                </h6>
+                
+                <p class="text-muted small mb-2">
+                    <i class="bi bi-person-circle me-1"></i>
+                    <?= htmlspecialchars($course['instructor_name'] ?? ($course['instructor_display_name'] ?? 'Giảng viên')) ?>
+                </p>
+                
+                <div class="d-flex align-items-center mb-2">
+                    <span class="fw-bold text-warning me-1">4.8</span>
+                    <div class="small text-warning">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-half"></i>
+                    </div>
+                    <span class="text-muted small ms-2">(<?= rand(100,5000) ?>)</span>
+                </div>
+                
+                <div class="mt-auto d-flex align-items-center">
+                    <?php 
+                        $price = isset($course['price']) ? (float)$course['price'] : 0.0; 
+                    ?>
+                    
+                    <?php if($price == 0): ?>
+                        <span class="fw-bold text-success fs-5">Miễn phí</span>
+                    <?php else: ?>
+                        <span class="fw-bold fs-5 text-primary"><?= number_format($price) ?>đ</span>
+                        <?php if($price > 0): ?>
+                            <span class="text-muted text-decoration-line-through ms-2 small">
+                                <?= number_format($price * 1.3) ?>đ
+                            </span>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </a>
+
+</div>
+<?php endforeach; ?>
         </div>
     </div>
 </section>

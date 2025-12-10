@@ -14,7 +14,6 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
     <div class="container">
         <a class="navbar-brand fw-bold text-primary fs-4" href="<?= BASE_URL ?>/home/index">OnlineCourse</a>
-        <a class="navbar-brand fw-bold text-primary fs-4" href="/onlinecourse">OnlineCourse</a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>

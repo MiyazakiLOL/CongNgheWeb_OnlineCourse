@@ -39,8 +39,8 @@ class HomeController
         $latestCourses = $this->courseModel->getLatestCourses(6);
 
         // Gắn tên giảng viên cho các course nếu có instructor_id
-        $this->attachInstructorNames($featuredCourses);
-        $this->attachInstructorNames($latestCourses);
+        // $this->attachInstructorNames($featuredCourses);
+        // $this->attachInstructorNames($latestCourses);
 
         // Đưa dữ liệu vào view
         require __DIR__ . '/../views/home/index.php';

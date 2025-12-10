@@ -36,15 +36,26 @@ class CourseController {
     }
 
     // 2. Hiển thị chi tiết khóa học
-    public function detail() {
-        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-        $course = $this->courseModel->getById($id);
+public function detail($id = null) {
+        
+        // Logic: Nếu Router chưa truyền ID (hoặc null), thì thử tìm trong $_GET (phòng hờ)
+        if (!$id && isset($_GET['id'])) {
+            $id = (int)$_GET['id'];
+        }
 
-        if (!$course) {
-            echo "Khóa học không tồn tại!";
+        // Nếu vẫn không có ID thì dừng luôn
+        if (!$id) {
+            echo "Lỗi: Không tìm thấy ID khóa học!";
             return;
         }
 
+        // Gọi Model
+        $course = $this->courseModel->getById($id);
+
+        if (!$course) {
+            echo "Khóa học (ID: $id) không tồn tại trong CSDL!";
+            return;
+        }
         // Kiểm tra xem người dùng đã đăng ký khóa này chưa (nếu đã đăng nhập)
         $isEnrolled = false;
         if (isset($_SESSION['user_id'])) {
