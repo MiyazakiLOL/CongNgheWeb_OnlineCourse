@@ -12,11 +12,13 @@ class HomeController
 {
     private $courseModel;
     private $categoryModel;
+    private $userModel;
 
     public function __construct() 
     {
         $this->courseModel = new Course();
         $this->categoryModel = new Category();
+        $this->userModel = new User();
     }
 
     public function index() 
@@ -29,6 +31,9 @@ class HomeController
 
         // Lấy khóa học mới nhất
         $latestCourses = $this->courseModel->getLatestCourses(6);
+
+        // Lấy giảng viên mới nhất
+        $latestInstructors = $this->userModel->getInstructors(4);
 
         // Đưa dữ liệu vào view
         require __DIR__ . '/../views/home/index.php';

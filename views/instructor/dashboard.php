@@ -1,6 +1,4 @@
 <?php 
-session_start();
-
 // Kiểm tra quyền giảng viên
 if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 1) {
     header('Location: /auth/login');
@@ -11,6 +9,10 @@ $user = $_SESSION['user'];
 if (!defined('BASE_URL')) {
     // Nếu bạn đang chạy trên localhost/onlinecourse/
     define('BASE_URL', '/onlinecourse/'); 
+}
+else{
+    //Không session_start() nữa
+
 }
 
 // Lấy khóa học của giảng viên
@@ -32,9 +34,6 @@ $courses = $courseModel->getByInstructor($user['id']);
             <!-- SỬA LINK ĐÚNG: DÙNG ROUTE, KHÔNG DÙNG ĐƯỜNG DẪN FILE -->
             <a href="instructor/courses/create" class="btn btn-success">
                 <i class="bi bi-plus-circle"></i> Tạo khóa học mới
-            </a>
-            <a href="auth/logout" class="btn btn-outline-danger">
-                <i class="bi bi-box-arrow-right"></i> Đăng xuất
             </a>
         </div>
     </div>

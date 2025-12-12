@@ -1,32 +1,31 @@
 <?php
-// views/student/dashboard.php
 session_start();
 
-// Kiểm tra đăng nhập + đúng vai trò học viên (role = 0)
+
+// ĐỊNH NGHĨA BASE_URL – CHỈ LÀM 1 LẦN Ở ĐÂY
+define('BASE_URL', '/onlinecourse');  // Nếu dự án trong thư mục onlinecourse
+// define('BASE_URL', '');            // Nếu copy ra htdocs gốc thì dùng dòng này
+
+// Kiểm tra đăng nhập + quyền học viên
 if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 0) {
-    header('Location: /auth/login');
+    header('Location: ' . BASE_URL . '/auth/login');
     exit;
 }
 
 $user = $_SESSION['user'];
 
-// === LẤY DỮ LIỆU THẬT TỪ DATABASE ===
-require_once __DIR__ . '/../../models/Enrollment.php';
-require_once __DIR__ . '/../../models/Course.php';
+// Lấy dữ liệu an toàn
+try {
+    require_once __DIR__ . '/../../models/Enrollment.php';
+    $enrollmentModel = new Enrollment();
+    $enrolledCourses = $enrollmentModel->getByStudentId($user['id']) ?: [];
 
-$enrollmentModel = new Enrollment();
-$courseModel     = new Course();
-
-// Lấy danh sách khóa học đã đăng ký của học viên hiện tại
-$enrolledCourses = $enrollmentModel->getByStudentId($user['id']);
-
-// Nếu chưa có dữ liệu → hiển thị mảng rỗng để tránh lỗi
-if (!$enrolledCourses) {
+    $completedCourses = array_filter($enrolledCourses, fn($c) => ($c['progress'] ?? 0) >= 100);
+} catch (Exception $e) {
     $enrolledCourses = [];
+    $completedCourses = [];
+    $db_error = "Tạm thời không tải được dữ liệu khóa học.";
 }
-
-// Đếm số khóa học đã hoàn thành
-$completedCourses = array_filter($enrolledCourses, fn($c) => $c['progress'] >= 100);
 ?>
 
 <?php $title = "Dashboard Học viên"; ?>
@@ -38,10 +37,14 @@ $completedCourses = array_filter($enrolledCourses, fn($c) => $c['progress'] >= 1
             <h2>Xin chào, <?= htmlspecialchars($user['fullname'] ?? $user['username']) ?>!</h2>
             <p class="text-muted">Chào mừng bạn trở lại với hành trình học tập</p>
         </div>
-        <a href="/auth/logout" class="btn btn-outline-danger">
-            <i class="bi bi-box-arrow-right"></i> Đăng xuất
-        </a>
     </div>
+
+    <?php if (isset($db_error)): ?>
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <?= $db_error ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
 
     <!-- Thống kê nhanh -->
     <div class="row g-4 mb-5">
@@ -66,40 +69,43 @@ $completedCourses = array_filter($enrolledCourses, fn($c) => $c['progress'] >= 1
         </div>
     </div>
 
-    <!-- Danh sách khóa học đang học -->
+    <!-- Danh sách khóa học -->
     <h4 class="mb-4">
         <i class="bi bi-play-circle"></i> Tiếp tục học
     </h4>
 
     <?php if (empty($enrolledCourses)): ?>
-        <div class="text-center py-5">
-            <img src="/assets/img/empty-courses.svg" alt="Chưa có khóa học" width="200">
-            <h5 class="mt-4 text-muted">Bạn chưa đăng ký khóa học nào</h5>
-            <a href="/" class="btn btn-primary mt-3">Khám phá khóa học ngay</a>
+        <div class="text-center py-5 bg-light rounded">
+            <img src="<?= BASE_URL ?>/assets/img/empty-courses.svg" alt="Chưa có khóa học" width="200" class="mb-4 opacity-75">
+            <h5 class="text-muted">Bạn chưa đăng ký khóa học nào</h5>
+            <a href="<?= BASE_URL ?>/" class="btn btn-primary mt-3">Khám phá khóa học ngay</a>
         </div>
     <?php else: ?>
         <div class="row g-4">
             <?php foreach ($enrolledCourses as $course): ?>
                 <div class="col-lg-4 col-md-6">
                     <div class="card h-100 shadow-sm hover-shadow transition">
-                        <img src="/assets/uploads/courses/<?= $course['image'] ?? 'default.jpg' ?>" 
-                             class="card-img-top" style="height:180px; object-fit:cover;" alt="<?= htmlspecialchars($course['title']) ?>">
+                        <img src="<?= BASE_URL ?>/assets/uploads/courses/<?= htmlspecialchars($course['image'] ?? 'default.jpg') ?>" 
+                             class="card-img-top" style="height:180px; object-fit:cover;" 
+                             alt="<?= htmlspecialchars($course['title'] ?? 'Khóa học') ?>">
                         <div class="card-body d-flex flex-column">
-                            <h6 class="card-title fw-bold"><?= htmlspecialchars($course['title']) ?></h6>
-                            <small class="text-muted mb-2">Giảng viên: <?= htmlspecialchars($course['instructor_name'] ?? 'Không rõ') ?></small>
+                            <h6 class="card-title fw-bold"><?= htmlspecialchars($course['title'] ?? 'Không có tiêu đề') ?></h6>
+                            <small class="text-muted mb-2">
+                                Giảng viên: <?= htmlspecialchars($course['instructor_name'] ?? 'Không rõ') ?>
+                            </small>
 
                             <div class="progress mt-2" style="height: 10px;">
-                                <div class="progress-bar <?= $course['progress'] >= 100 ? 'bg-success' : 'bg-primary' ?>" 
-                                     style="width: <?= $course['progress'] ?>%"></div>
+                                <div class="progress-bar <?= ($course['progress'] ?? 0) >= 100 ? 'bg-success' : 'bg-primary' ?>" 
+                                     style="width: <?= ($course['progress'] ?? 0) ?>%"></div>
                             </div>
                             <div class="d-flex justify-content-between align-items-center mt-2">
-                                <small class="text-muted"><?= $course['progress'] ?>% hoàn thành</small>
-                                <?php if ($course['progress'] >= 100): ?>
+                                <small class="text-muted"><?= ($course['progress'] ?? 0) ?>% hoàn thành</small>
+                                <?php if (($course['progress'] ?? 0) >= 100): ?>
                                     <span class="badge bg-success">Hoàn thành</span>
                                 <?php endif; ?>
                             </div>
 
-                            <a href="/courses/detail/<?= $course['course_id'] ?>" 
+                            <a href="<?= BASE_URL ?>/courses/detail/<?= $course['course_id'] ?? $course['id'] ?? '' ?>" 
                                class="btn btn-primary mt-3">Tiếp tục học</a>
                         </div>
                     </div>

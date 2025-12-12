@@ -7,6 +7,10 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+$host = $_SERVER['HTTP_HOST'];
+$base_url = $protocol . $host . '/'; // Điều chỉnh nếu dự án chạy trong thư mục con
+
 // Autoload
 spl_autoload_register(function ($class) {
     $paths = [
@@ -73,13 +77,19 @@ if (!method_exists($instance, $method)) {
 
 if ($controller == 'InstructorController') {
     if ($method == 'courses') {
-        if (isset($params[0]) && $params[0] == 'create') {
-            $instance->createCourse();
-        } elseif (isset($params[0]) && $params[0] == 'edit' && isset($params[1])) {
-            $instance->editCourse($params[1]);
-        }
-    } else {
-        $instance->dashboard();
+        // Lấy tham số từ URL
+        // Ví dụ URL: /instructor/courses/edit/1 
+        // -> $params[0] là 'edit' (action)
+        // -> $params[1] là '1' (id)
+        
+        $action = isset($params[0]) ? $params[0] : 'list';
+        $id = isset($params[1]) ? $params[1] : null;
+
+        // Gọi hàm courses() thay vì createCourse() hay editCourse()
+        $instance->courses($action, $id);
+        
+        // Dừng script tại đây để không chạy xuống logic mặc định bên dưới
+        exit; 
     }
 }
 

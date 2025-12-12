@@ -143,24 +143,63 @@ class Course {
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: false;
     }
 
-    // Cập nhật khóa học
-    public function update($id)
-    {
-        try {
-            $sql = "UPDATE {$this->table}
-                    SET title = ?, description = ?, category_id = ?, updated_at = NOW()
-                    WHERE id = ?";
-            $stmt = $this->conn->prepare($sql);
+    // --- HÀM CREATE ---
+    public function create() {
+        $query = "INSERT INTO " . $this->table . " 
+                  (title, description, instructor_id, category_id, price, duration_weeks, level, image)
+                  VALUES (:title, :description, :instructor_id, :category_id, :price, :duration_weeks, :level, :image)";
 
-            return $stmt->execute([
-                $this->title,
-                $this->description,
-                $this->category_id,
-                $id
-            ]);
-        } catch (Exception $e) {
-            return false;
+        $stmt = $this->conn->prepare($query);
+
+        // Clean data
+        $this->title = htmlspecialchars(strip_tags($this->title));
+        $this->description = htmlspecialchars(strip_tags($this->description));
+        
+        // Bind params
+        $stmt->bindParam(':title', $this->title);
+        $stmt->bindParam(':description', $this->description);
+        $stmt->bindParam(':instructor_id', $this->instructor_id);
+        $stmt->bindParam(':category_id', $this->category_id);
+        $stmt->bindParam(':price', $this->price);
+        $stmt->bindParam(':duration_weeks', $this->duration_weeks);
+        $stmt->bindParam(':level', $this->level);
+        $stmt->bindParam(':image', $this->image);
+
+        if ($stmt->execute()) {
+            return true;
         }
+        return false;
+    }
+
+    // --- CẬP NHẬT HÀM UPDATE ---
+    public function update() { // Bỏ tham số $id vì đã có $this->id
+        $query = "UPDATE " . $this->table . "
+                  SET title = :title, 
+                      description = :description, 
+                      category_id = :category_id, 
+                      price = :price,
+                      duration_weeks = :duration_weeks,
+                      level = :level,
+                      image = :image,
+                      updated_at = NOW()
+                  WHERE id = :id";
+
+        $stmt = $this->conn->prepare($query);
+
+        // Bind params
+        $stmt->bindParam(':title', $this->title);
+        $stmt->bindParam(':description', $this->description);
+        $stmt->bindParam(':category_id', $this->category_id);
+        $stmt->bindParam(':price', $this->price);
+        $stmt->bindParam(':duration_weeks', $this->duration_weeks);
+        $stmt->bindParam(':level', $this->level);
+        $stmt->bindParam(':image', $this->image);
+        $stmt->bindParam(':id', $this->id);
+
+        if ($stmt->execute()) {
+            return true;
+        }
+        return false;
     }
 
     // Xóa khóa học

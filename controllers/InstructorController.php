@@ -1,27 +1,166 @@
 <?php
-class InstructorController
-{
-    private function requireLogin()
-    {
-        session_start();
+// controllers/InstructorController.php
+
+require_once __DIR__ . '/../models/Course.php';
+require_once __DIR__ . '/../models/Category.php';
+
+class InstructorController {
+    private $courseModel;
+    private $categoryModel;
+
+    public function __construct() {
+        $this->courseModel = new Course();
+        $this->categoryModel = new Category();
+    }
+
+    private function requireLogin() {
+        if (session_status() === PHP_SESSION_NONE) session_start();
         if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 1) {
-            header('Location: /auth/login');
+            header('Location: ' . (defined('BASE_URL') ? BASE_URL : '/onlinecourse') . '/auth/login');
             exit;
         }
     }
 
-    public function dashboard()
-    {
+    public function dashboard() {
         $this->requireLogin();
         $user = $_SESSION['user'];
-
-        // Khóa học của giảng viên (mẫu)
-        $myCourses = [
-            ['id' => 1, 'title' => 'Lập trình PHP từ A-Z', 'students' => 1234, 'rating' => 4.8, 'revenue' => '₫45,200,000'],
-            ['id' => 2, 'title' => 'JavaScript Nâng Cao', 'students' => 892, 'rating' => 4.9, 'revenue' => '₫32,100,000'],
-        ];
-
+        $courses = $this->courseModel->getByInstructor($user['id']);
         $title = "Dashboard Giảng viên";
         require __DIR__ . '/../views/instructor/dashboard.php';
     }
+
+    // =================================================================
+    // HÀM QUAN TRỌNG: XỬ LÝ URL dạng /instructor/courses/action/id
+    // =================================================================
+    public function courses($action = 'list', $id = null) {
+        $this->requireLogin();
+
+        switch ($action) {
+            case 'create':
+                $this->create(); // Gọi hàm create
+                break;
+            case 'store':
+                $this->store(); // Gọi hàm xử lý lưu
+                break;
+            case 'edit':
+                $this->edit($id); // Gọi hàm sửa
+                break;
+            case 'update':
+                $this->update($id); // Gọi hàm xử lý update
+                break;
+            case 'delete':
+                $this->delete($id); // Gọi hàm xóa
+                break;
+            case 'list':
+            default:
+                $this->myCourses(); // Mặc định hiện danh sách
+                break;
+        }
+    }
+
+    // --- CÁC HÀM XỬ LÝ CHI TIẾT (Đã sửa đường dẫn view thành /course/) ---
+
+    // 1. Hiện danh sách (My Courses)
+    private function myCourses() {
+        $user = $_SESSION['user'];
+        $courses = $this->courseModel->getByInstructor($user['id']);
+        $title = "Khóa học của tôi";
+        // SỬA ĐƯỜNG DẪN VIEW: course (số ít)
+        require __DIR__ . '/../views/instructor/course/manage.php'; 
+        // Lưu ý: Bạn gọi file này là manage.php hay my_courses.php thì sửa tên tương ứng ở đây nhé
+    }
+
+    // 2. Hiện form tạo mới
+    private function create() {
+        $categories = $this->categoryModel->getAll();
+        $title = "Tạo khóa học mới";
+        // SỬA ĐƯỜNG DẪN VIEW: course (số ít)
+        require __DIR__ . '/../views/instructor/course/create.php';
+    }
+
+    // 3. Xử lý lưu (Store)
+    private function store() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $this->courseModel->title = $_POST['title'];
+            $this->courseModel->description = $_POST['description'];
+            $this->courseModel->price = $_POST['price'];
+            $this->courseModel->category_id = $_POST['category_id'];
+            $this->courseModel->level = $_POST['level'];
+            $this->courseModel->duration_weeks = $_POST['duration_weeks'];
+            $this->courseModel->instructor_id = $_SESSION['user']['id'];
+            $this->courseModel->image = 'default.jpg'; 
+
+            if ($this->courseModel->create()) {
+                $_SESSION['success'] = "Tạo khóa học thành công!";
+                
+                // --- SỬA Ở ĐÂY: Chuyển hướng về Dashboard ---
+                header('Location: ' . BASE_URL . '/instructor/dashboard'); 
+            } else {
+                $_SESSION['error'] = "Có lỗi xảy ra!";
+                // Nếu lỗi thì giữ nguyên trang tạo để nhập lại
+                header('Location: ' . BASE_URL . '/instructor/courses/create');
+            }
+            exit;
+        }
+    }
+
+    // 4. Hiện form sửa
+    private function edit($id) {
+        $course = $this->courseModel->find($id);
+        
+        if (!$course || $course['instructor_id'] != $_SESSION['user']['id']) {
+            $_SESSION['error'] = "Không có quyền truy cập!";
+            header('Location: ' . BASE_URL . '/instructor/dashboard.php');
+            exit;
+        }
+
+        $categories = $this->categoryModel->getAll();
+        $title = "Sửa khóa học";
+        // SỬA ĐƯỜNG DẪN VIEW: course (số ít)
+        require __DIR__ . '/../views/instructor/course/edit.php';
+    }
+
+    // 5. Xử lý cập nhật (Update)
+    private function update($id) {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Check quyền sở hữu
+            $check = $this->courseModel->find($id);
+            if ($check['instructor_id'] != $_SESSION['user']['id']) die("Access Denied");
+
+            $this->courseModel->id = $id;
+            $this->courseModel->title = $_POST['title'];
+            $this->courseModel->description = $_POST['description'];
+            $this->courseModel->price = $_POST['price'];
+            $this->courseModel->category_id = $_POST['category_id'];
+            $this->courseModel->level = $_POST['level'];
+            $this->courseModel->duration_weeks = $_POST['duration_weeks'];
+            $this->courseModel->image = $check['image']; 
+
+            if ($this->courseModel->update()) {
+                $_SESSION['success'] = "Cập nhật thành công!";
+                
+                // --- SỬA Ở ĐÂY: Chuyển hướng về Dashboard ---
+                header('Location: ' . BASE_URL . '/instructor/dashboard');
+            } else {
+                $_SESSION['error'] = "Lỗi cập nhật!";
+                // Nếu lỗi thì quay lại trang sửa
+                header('Location: ' . BASE_URL . '/instructor/courses/edit/' . $id);
+            }
+            exit;
+        }
+    }
+
+    // 6. Xóa
+    private function delete($id) {
+        $course = $this->courseModel->find($id);
+        if ($course && $course['instructor_id'] == $_SESSION['user']['id']) {
+            $this->courseModel->delete($id);
+            $_SESSION['success'] = "Đã xóa khóa học!";
+        } else {
+            $_SESSION['error'] = "Lỗi khi xóa!";
+        }
+        header('Location: ' . BASE_URL . '/instructor/dashboard');
+        exit;
+    }
 }
+?>

@@ -27,9 +27,17 @@ class Enrollment {
     }
 
     public function getByStudentId($student_id) {
-    $query = "SELECT e.*, c.title, c.image, c.course_id, 
-                     u.fullname as instructor_name,
-                     e.progress
+    $query = "SELECT e.*, 
+                     c.id AS course_id,      -- SỬA: dùng c.id thay vì c.course_id
+                     c.title, 
+                     c.description, 
+                     c.image, 
+                     c.price,
+                     c.duration_weeks,
+                     c.level,
+                     u.fullname AS instructor_name,
+                     e.progress,
+                     e.status
               FROM enrollments e
               JOIN courses c ON e.course_id = c.id
               LEFT JOIN users u ON c.instructor_id = u.id
@@ -40,7 +48,9 @@ class Enrollment {
     $stmt->bindParam(':student_id', $student_id, PDO::PARAM_INT);
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
+}
+
+    
 
     public function isEnrolled($student_id, $course_id) {
         $query = "SELECT id FROM " . $this->table . " 
