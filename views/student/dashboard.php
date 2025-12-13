@@ -1,9 +1,6 @@
 <?php
-session_start();
-
-
 // ĐỊNH NGHĨA BASE_URL – CHỈ LÀM 1 LẦN Ở ĐÂY
-define('BASE_URL', '/onlinecourse');  // Nếu dự án trong thư mục onlinecourse
+//define('BASE_URL', '/onlinecourse');  // Nếu dự án trong thư mục onlinecourse
 // define('BASE_URL', '');            // Nếu copy ra htdocs gốc thì dùng dòng này
 
 // Kiểm tra đăng nhập + quyền học viên

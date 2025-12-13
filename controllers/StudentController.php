@@ -4,7 +4,6 @@ class StudentController
 {
     private function requireLogin()
     {
-        session_start();
         if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 0) {
             header('Location: /auth/login');
             exit;

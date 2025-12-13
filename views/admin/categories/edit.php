@@ -1,24 +1,28 @@
-<div class="container mt-4"> <h1>Sửa Danh mục</h1>
+<?php include __DIR__ . '/../../layouts/header.php'; ?>
+
+<div class="container mt-4">
+    <h1>Sửa Danh mục</h1>
     
     <?php if (isset($category)): ?>
-        <form method="POST" action="">
-            <input type="hidden" name="id" value="<?= htmlspecialchars($category['id']) ?>">
+        <form method="POST" action="" class="mt-3">
+            <input type="hidden" name="id" value="<?= $category['id'] ?>">
             
             <div class="mb-3">
-                <label for="name" class="form-label">Tên danh mục:</label>
-                <input type="text" class="form-control" id="name" name="name" 
-                       value="<?= htmlspecialchars($category['name']) ?>" required>
+                <label class="form-label">Tên danh mục:</label>
+                <input type="text" name="name" class="form-control" value="<?= htmlspecialchars($category['name']) ?>" required>
             </div>
             
             <div class="mb-3">
-                <label for="description" class="form-label">Mô tả:</label>
-                <textarea class="form-control" id="description" name="description" rows="3"><?= htmlspecialchars($category['description']) ?></textarea>
+                <label class="form-label">Mô tả:</label>
+                <textarea name="description" class="form-control" rows="3"><?= htmlspecialchars($category['description']) ?></textarea>
             </div>
             
-            <button type="submit" class="btn btn-primary">Cập nhật</button>
-            <a href="<?= defined('BASE_URL') ? BASE_URL : '/onlinecourse' ?>/admin/categories" class="btn btn-secondary">Hủy</a>
+            <button type="submit" name="update" class="btn btn-primary">Cập nhật</button>
+            <a href="<?= BASE_URL ?>/admin/categories" class="btn btn-secondary">Hủy</a>
         </form>
     <?php else: ?>
-        <p class="text-danger">Không tìm thấy thông tin danh mục.</p>
+        <div class="alert alert-danger">Không tìm thấy danh mục!</div>
     <?php endif; ?>
 </div>
+
+<?php include __DIR__ . '/../../layouts/footer.php'; ?>

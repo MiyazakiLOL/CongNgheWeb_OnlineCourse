@@ -39,7 +39,7 @@ $users = $userModel->getAllUsers();
                 <p class="lead mb-0">Chào mừng bạn đến với bảng điều khiển quản trị. Quản lý hệ thống một cách dễ dàng.</p>
             </div>
             <div class="col-lg-4 text-lg-end">
-                <img src="<?= BASE_URL ?>/assets/img/admin-illustration.svg" alt="Admin" class="img-fluid" style="max-height: 200px;">
+                <img src="<?= BASE_URL ?>/assets/uploads/admin-illustration.jpg" alt="Admin" class="img-fluid" style="max-height: 200px;">
             </div>
         </div>
     </div>
@@ -48,9 +48,14 @@ $users = $userModel->getAllUsers();
     <div class="card shadow-sm mb-5">
         <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
             <h4 class="mb-0 fw-bold text-primary">Quản lý Danh mục</h4>
-            <a href="<?= BASE_URL ?>./admin/categories/create" class="btn btn-success">
-                <i class="bi bi-plus-circle me-2"></i> Thêm danh mục mới
-            </a>
+            <div style="gap: 20px;">
+                <a href="<?= BASE_URL ?>/admin/categories/list" class="btn btn-primary">
+                    Xem danh sách
+                </a>
+                <a href="<?= BASE_URL ?>/admin/categories/create" class="btn btn-success">
+                    <i class="bi bi-plus-circle me-2"></i> Thêm danh mục mới
+                </a>
+            </div>
         </div>
         <div class="card-body">
             <?php if (empty($categories)): ?>
