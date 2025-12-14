@@ -68,11 +68,16 @@
                         <ul class="dropdown-menu dropdown-menu-end shadow animate slideIn" aria-labelledby="userDropdown">
                             <li><div class="dropdown-header">Xin chào, <?= htmlspecialchars($name) ?></div></li>
                             
-                            <li><a class="dropdown-item" href="student/profile">
-                                <i class="bi bi-person me-2"></i> Hồ sơ cá nhân
-                            </a></li>
+                            <?php if ($role == 0): ?>
+                                <li><a class="dropdown-item" href="student/profile">
+                                    <i class="bi bi-person me-2"></i> Hồ sơ cá nhân
+                                </a></li>
+                            <?php endif; ?>
 
                             <?php if ($role == 1): ?>
+                            <li><a class="dropdown-item" href="instructor/profile">
+                                <i class="bi bi-person me-2"></i> Hồ sơ cá nhân
+                            </a></li>
                             <li><a class="dropdown-item" href="instructor/dashboard">
                                 <i class="bi bi-easel me-2"></i> Dashboard giảng viên
                             </a></li>

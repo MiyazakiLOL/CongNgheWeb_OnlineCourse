@@ -96,35 +96,33 @@ class AdminController {
 
             case 'edit':
                 if (!$id || !is_numeric($id)) {
-                    // Nếu lỗi ID thì về dashboard
-                    header('Location: ' . BASE_URL . '/admin/dashboard'); 
+                    header('Location: ' . BASE_URL . '/admin/categories'); 
                     exit;
                 }
 
-                $user = $this->userModel->getById($id);
-                if (!$user) {
-                    $_SESSION['error'] = "Người dùng không tồn tại!";
-                    header('Location: ' . BASE_URL . '/admin/dashboard'); 
+                $category = $this->categoryModel->getById($id);
+                if (!$category) {
+                    $_SESSION['error'] = "Danh mục không tồn tại!";
+                    header('Location: ' . BASE_URL . '/admin/categories'); 
                     exit;
                 }
 
                 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                    $role = (int)$_POST['role'];
-                    if (in_array($role, [0, 1, 2])) {
-                        if ($this->userModel->updateRole($id, $role)) {
-                            $_SESSION['success'] = "Cập nhật vai trò thành công!";
-                        } else {
-                            $_SESSION['error'] = "Cập nhật thất bại!";
-                        }
-                    }
-                    
-                    // SỬA LỖI 2: Sau khi update xong, chuyển hướng về Dashboard
-                    header('Location: ' . BASE_URL . '/admin/dashboard'); 
-                    exit;
-                }
+                    $this->categoryModel->id = $id;
+                    $this->categoryModel->name = trim($_POST['name']);
+                    $this->categoryModel->description = trim($_POST['description'] ?? '');
 
-                require __DIR__ . '/../views/admin/users/edit.php';
-            break;
+                    if ($this->categoryModel->update()) {
+                        $_SESSION['success'] = "Cập nhật danh mục thành công!";
+                        header('Location: ' . BASE_URL . '/admin/categories'); 
+                        exit;
+                    } else {
+                        $error = "Cập nhật thất bại!";
+                    }
+                }
+                // Truyền biến $category sang view
+                require __DIR__ . '/../views/admin/categories/edit.php';
+                break;
 
             case 'delete':
                 if ($id && is_numeric($id)) {
