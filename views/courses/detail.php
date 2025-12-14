@@ -23,7 +23,9 @@ include __DIR__ . '/../layouts/header.php';
                 </p>
 
                 <div class="d-flex align-items-center mb-4 author-box">
-                    <img src="<?= BASE_URL ?>/assets/uploads/avatars/default.png" class="rounded-circle me-3" width="50" height="50" alt="Author">
+                    <img src="https://ui-avatars.com/api/?name=<?= urlencode($course['instructor_name']) ?>&background=random" 
+                        class="rounded-circle me-3" 
+                        width="40" height="40" alt="Avatar">
                     <div>
                         <span class="d-block small text-muted">Được giảng dạy bởi</span>
                         <strong class="text-dark"><?= htmlspecialchars($course['instructor_name']) ?></strong>

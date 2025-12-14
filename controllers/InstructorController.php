@@ -60,7 +60,7 @@ class InstructorController {
 
     // --- CÁC HÀM XỬ LÝ CHI TIẾT (Đã sửa đường dẫn view thành /course/) ---
 
-    // 1. Hiện danh sách (My Courses)
+    // Hiện danh sách (My Courses)
     private function myCourses() {
         $user = $_SESSION['user'];
         $courses = $this->courseModel->getByInstructor($user['id']);
@@ -70,7 +70,7 @@ class InstructorController {
         // Lưu ý: Bạn gọi file này là manage.php hay my_courses.php thì sửa tên tương ứng ở đây nhé
     }
 
-    // 2. Hiện form tạo mới
+    // Hiện form tạo mới
     private function create() {
         $categories = $this->categoryModel->getAll();
         $title = "Tạo khóa học mới";
@@ -78,7 +78,7 @@ class InstructorController {
         require __DIR__ . '/../views/instructor/course/create.php';
     }
 
-    // 3. Xử lý lưu (Store)
+    // Xử lý lưu (Store)
     private function store() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $this->courseModel->title = $_POST['title'];
@@ -104,7 +104,7 @@ class InstructorController {
         }
     }
 
-    // 4. Hiện form sửa
+    // Hiện form sửa
     private function edit($id) {
         $course = $this->courseModel->find($id);
         
@@ -120,7 +120,7 @@ class InstructorController {
         require __DIR__ . '/../views/instructor/course/edit.php';
     }
 
-    // 5. Xử lý cập nhật (Update)
+    // Xử lý cập nhật (Update)
     private function update($id) {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Check quyền sở hữu
@@ -150,7 +150,7 @@ class InstructorController {
         }
     }
 
-    // 6. Xóa
+    // Xóa
     private function delete($id) {
         $course = $this->courseModel->find($id);
         if ($course && $course['instructor_id'] == $_SESSION['user']['id']) {
@@ -161,6 +161,19 @@ class InstructorController {
         }
         header('Location: ' . BASE_URL . '/instructor/dashboard');
         exit;
+    }
+
+    // Quản lý học viên
+    public function students() {
+        $this->requireLogin();
+        $user = $_SESSION['user'];
+
+        $enrollmentModel = new Enrollment();
+        $students = $enrollmentModel->getStudentsByInstructor($user['id']);
+
+        $title = "Quản lý học viên";
+        // Gọi View hiển thị
+        require __DIR__ . '/../views/instructor/students/list.php';
     }
 }
 ?>

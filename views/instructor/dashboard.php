@@ -31,10 +31,15 @@ $courses = $courseModel->getByInstructor($user['id']);
             <p class="text-muted">Theo dõi hiệu suất giảng dạy của bạn</p>
         </div>
         <div class="d-flex gap-3">
-            <!-- SỬA LINK ĐÚNG: DÙNG ROUTE, KHÔNG DÙNG ĐƯỜNG DẪN FILE -->
-            <a href="instructor/courses/create" class="btn btn-success">
-                <i class="bi bi-plus-circle"></i> Tạo khóa học mới
-            </a>
+            <div class="d-flex gap-2">
+                <a href="<?= BASE_URL ?>/instructor/students" class="btn btn-outline-primary">
+                    <i class="bi bi-people"></i> Quản lý Học viên
+                </a>
+                
+                <a href="<?= BASE_URL ?>/instructor/courses/create" class="btn btn-success">
+                    <i class="bi bi-plus-circle"></i> Tạo khóa học mới
+                </a>
+            </div>
         </div>
     </div>
 

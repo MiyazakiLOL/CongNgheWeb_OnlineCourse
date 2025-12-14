@@ -74,5 +74,21 @@ class Enrollment {
         
         return $stmt->execute();
     }
+
+    public function getStudentsByInstructor($instructor_id) {
+        $query = "SELECT u.id, u.fullname, u.email,
+                         c.title as course_title,
+                         e.enrolled_date, e.progress, e.status
+                  FROM " . $this->table . " e
+                  JOIN courses c ON e.course_id = c.id
+                  JOIN users u ON e.student_id = u.id
+                  WHERE c.instructor_id = :instructor_id
+                  ORDER BY e.enrolled_date DESC";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':instructor_id', $instructor_id, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 ?>
