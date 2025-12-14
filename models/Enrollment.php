@@ -72,7 +72,16 @@ class Enrollment {
         $stmt->bindValue(':student_id', $student_id);
         $stmt->bindValue(':course_id', $course_id);
         
-        return $stmt->execute();
+        if ($stmt->execute()) {
+        return true;
+    } else {
+        // In lỗi chi tiết ra màn hình
+        $error = $stmt->errorInfo();
+        echo "<pre style='color:red; font-weight:bold'>";
+        echo "Lỗi SQL Database: " . $error[2]; 
+        echo "</pre>";
+        die(); // Dừng lại để xem lỗi
+    }
     }
 }
 ?>

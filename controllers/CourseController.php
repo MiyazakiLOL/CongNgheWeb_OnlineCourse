@@ -58,8 +58,9 @@ class CourseController {
         }
         // Kiểm tra xem người dùng đã đăng ký khóa này chưa (nếu đã đăng nhập)
         $isEnrolled = false;
-        if (isset($_SESSION['user_id'])) {
-            $isEnrolled = $this->enrollmentModel->isEnrolled($_SESSION['user_id'], $id);
+        if (isset($_SESSION['user'])) {
+            $student_id = $_SESSION['user']['id'];
+            $isEnrolled = $this->enrollmentModel->isEnrolled($student_id, $id);
         }
 
         require __DIR__ . '/../views/courses/detail.php';
@@ -68,14 +69,14 @@ class CourseController {
     // 3. Xử lý đăng ký khóa học
     public function enroll() {
         // Kiểm tra đăng nhập
-        if (!isset($_SESSION['user_id'])) {
+        if (!isset($_SESSION['user'])) {
             // Nếu chưa đăng nhập, chuyển hướng về trang login
             header("Location: index.php?controller=auth&action=login");
             exit();
         }
 
         $course_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-        $student_id = $_SESSION['user_id'];
+        $student_id = $_SESSION['user']['id'];
 
         // Kiểm tra xem đã đăng ký chưa
         if ($this->enrollmentModel->isEnrolled($student_id, $course_id)) {
