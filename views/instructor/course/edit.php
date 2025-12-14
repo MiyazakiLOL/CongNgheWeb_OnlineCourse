@@ -14,6 +14,14 @@
                             <input type="text" name="title" class="form-control" required value="<?= htmlspecialchars($course['title']) ?>">
                         </div>
 
+                        <div class="mb-3">
+                            <label class="form-label">Ảnh đại diện khóa học</label>
+                            <input type="file" name="image" class="form-control" accept="image/*" onchange="previewImage(this)">
+                            <div class="mt-2">
+                                <img id="preview" src="#" alt="Xem trước ảnh" style="max-width: 100%; height: 200px; object-fit: cover; display: none;" class="rounded border">
+                            </div>
+                        </div>
+
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Danh mục</label>
@@ -61,5 +69,19 @@
         </div>
     </div>
 </div>
+
+<script>
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            var preview = document.getElementById('preview');
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
 
 <?php include __DIR__ . '/../../layouts/footer.php'; ?>

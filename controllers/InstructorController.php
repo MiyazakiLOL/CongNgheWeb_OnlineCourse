@@ -78,6 +78,40 @@ class InstructorController {
         require __DIR__ . '/../views/instructor/course/create.php';
     }
 
+    private function uploadImage($file) {
+        $targetDir = __DIR__ . '/../assets/uploads/courses/'; // Đường dẫn thư mục lưu ảnh
+        
+        // Tạo thư mục nếu chưa tồn tại
+        if (!file_exists($targetDir)) {
+            mkdir($targetDir, 0777, true);
+        }
+
+        // Lấy đuôi file (jpg, png...)
+        $imageFileType = strtolower(pathinfo($file["name"], PATHINFO_EXTENSION));
+        
+        // Kiểm tra xem có phải là ảnh thật không
+        $check = getimagesize($file["tmp_name"]);
+        if ($check === false) {
+            return false;
+        }
+
+        // Chỉ cho phép định dạng ảnh phổ biến
+        if($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg" && $imageFileType != "gif" && $imageFileType != "webp" ) {
+            return false;
+        }
+
+        // Đặt tên file mới để tránh trùng lặp (ví dụ: course_1702345678.jpg)
+        $newFileName = 'course_' . time() . '.' . $imageFileType;
+        $targetFilePath = $targetDir . $newFileName;
+
+        // Di chuyển file từ bộ nhớ tạm vào thư mục đích
+        if (move_uploaded_file($file["tmp_name"], $targetFilePath)) {
+            return $newFileName; // Trả về tên file để lưu vào DB
+        }
+        
+        return false;
+    }
+
     // Xử lý lưu (Store)
     private function store() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -88,16 +122,25 @@ class InstructorController {
             $this->courseModel->level = $_POST['level'];
             $this->courseModel->duration_weeks = $_POST['duration_weeks'];
             $this->courseModel->instructor_id = $_SESSION['user']['id'];
-            $this->courseModel->image = 'default.jpg'; 
+            
+            // --- XỬ LÝ UPLOAD ẢNH ---
+            $imageName = 'default-course.png'; // Ảnh mặc định nếu không upload
+            
+            if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
+                $uploaded = $this->uploadImage($_FILES['image']);
+                if ($uploaded) {
+                    $imageName = $uploaded;
+                }
+            }
+            
+            $this->courseModel->image = $imageName; 
+            // ------------------------
 
             if ($this->courseModel->create()) {
                 $_SESSION['success'] = "Tạo khóa học thành công!";
-                
-                // --- SỬA Ở ĐÂY: Chuyển hướng về Dashboard ---
                 header('Location: ' . BASE_URL . '/instructor/dashboard'); 
             } else {
                 $_SESSION['error'] = "Có lỗi xảy ra!";
-                // Nếu lỗi thì giữ nguyên trang tạo để nhập lại
                 header('Location: ' . BASE_URL . '/instructor/courses/create');
             }
             exit;

@@ -8,11 +8,19 @@
                     <h4 class="mb-0">Tạo khóa học mới</h4>
                 </div>
                 <div class="card-body">
-                    <form action="<?= BASE_URL ?>/instructor/courses/store" method="POST">
+                    <form action="<?= BASE_URL ?>/instructor/courses/store" method="POST" enctype="multipart/form-data">
                         
                         <div class="mb-3">
                             <label class="form-label">Tên khóa học (*)</label>
                             <input type="text" name="title" class="form-control" required placeholder="Nhập tên khóa học...">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Ảnh đại diện khóa học</label>
+                            <input type="file" name="image" class="form-control" accept="image/*" onchange="previewImage(this)">
+                            <div class="mt-2">
+                                <img id="preview" src="#" alt="Xem trước ảnh" style="max-width: 100%; height: 200px; object-fit: cover; display: none;" class="rounded border">
+                            </div>
                         </div>
 
                         <div class="row">
@@ -61,5 +69,19 @@
         </div>
     </div>
 </div>
+
+<script>
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            var preview = document.getElementById('preview');
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
 
 <?php include __DIR__ . '/../../layouts/footer.php'; ?>
