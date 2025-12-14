@@ -103,11 +103,11 @@ include __DIR__ . '/../layouts/header.php';
                             <div class="d-grid gap-2 mb-3">
                                 <?php if (isset($_SESSION['user'])): ?>
                                     <?php if (isset($isEnrolled) && $isEnrolled): ?>
-                                        <button class="btn btn-success btn-lg fw-bold">ĐÃ ĐĂNG KÝ - VÀO HỌC</button>
+                                        <a href="<?= BASE_URL ?>/index.php?controller=course&action=learn&id=<?= $course['id'] ?>" class="btn btn-success btn-lg fw-bold w-100"> <i class="bi bi-play-circle-fill"></i> ĐÃ ĐĂNG KÝ - VÀO HỌC</a>
                                     <?php else: ?>
                                   <form action="<?= BASE_URL ?>/index.php?controller=course&action=enroll&id=<?= $course['id'] ?>" method="POST">
                                         <button type="submit" class="btn btn-primary btn-lg fw-bold w-100">ĐĂNG KÝ NGAY</button>
-                                   </form>
+                                </form>
                                     <?php endif; ?>
                                 <?php else: ?>
                                     <a href="<?= BASE_URL ?>/auth/login" class="btn btn-primary btn-lg fw-bold">ĐĂNG NHẬP ĐỂ HỌC</a>

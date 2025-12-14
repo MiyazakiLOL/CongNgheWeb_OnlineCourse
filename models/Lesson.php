@@ -54,10 +54,10 @@ class Lesson
     }
 
     // Lấy bài học theo course_id
-    public function getByCourse($course_id)
+    public function getByCourseId($course_id)
     {
         try {
-            $sql = "SELECT * FROM {$this->table} WHERE course_id = ? ORDER BY id ASC";
+            $sql = "SELECT * FROM {$this->table} WHERE course_id = ? ORDER BY `order` ASC";
             $stmt = $this->conn->prepare($sql);
             $stmt->execute([$course_id]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
