@@ -52,7 +52,7 @@
                         </div>
 
                         <div class="d-flex justify-content-between">
-                            <a href="<?= BASE_URL ?>instructor/dashboard.php" class="btn btn-secondary">Hủy bỏ</a>
+                            <a href="<?= BASE_URL ?>/instructor/dashboard" class="btn btn-secondary">Hủy bỏ</a>
                             <button type="submit" class="btn btn-primary">Cập nhật</button>
                         </div>
                     </form>
