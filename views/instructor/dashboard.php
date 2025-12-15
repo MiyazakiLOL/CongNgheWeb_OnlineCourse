@@ -1,12 +1,27 @@
 <?php 
-// ĐẶT DÒNG NÀY LÊN ĐẦU TIÊN CỦA MỌI DASHBOARD
-session_start();
+// Kiểm tra quyền giảng viên
 if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 1) {
     header('Location: /auth/login');
     exit;
 }
-$user = $_SESSION['user']; // BÂY GIỜ $user CHẮC CHẮN TỒN TẠI
+$user = $_SESSION['user'];
+
+if (!defined('BASE_URL')) {
+    // Nếu bạn đang chạy trên localhost/onlinecourse/
+    define('BASE_URL', '/onlinecourse/'); 
+}
+else{
+    //Không session_start() nữa
+
+}
+
+// Lấy khóa học của giảng viên
+require_once __DIR__ . '/../../models/Course.php';
+$courseModel = new Course();
+$courses = $courseModel->getByInstructor($user['id']);
 ?>
+
+<?php $title = "Dashboard Giảng viên"; ?>
 <?php include __DIR__ . '/../layouts/header.php'; ?>
 
 <div class="container py-5">
@@ -16,16 +31,44 @@ $user = $_SESSION['user']; // BÂY GIỜ $user CHẮC CHẮN TỒN TẠI
             <p class="text-muted">Theo dõi hiệu suất giảng dạy của bạn</p>
         </div>
         <div class="d-flex gap-3">
-            <!-- SỬA LINK ĐÚNG: DÙNG ROUTE, KHÔNG DÙNG ĐƯỜNG DẪN FILE -->
-            <a href="instructor/courses/create" class="btn btn-success">
-                <i class="bi bi-plus-circle"></i> Tạo khóa học mới
-            </a>
+            <div class="d-flex gap-2">
+                <a href="<?= BASE_URL ?>/instructor/students" class="btn btn-outline-primary">
+                    <i class="bi bi-people"></i> Quản lý Học viên
+                </a>
+                
+                <a href="<?= BASE_URL ?>/instructor/courses/create" class="btn btn-success">
+                    <i class="bi bi-plus-circle"></i> Tạo khóa học mới
+                </a>
+            </div>
         </div>
     </div>
 
     <!-- Thống kê mẫu -->
     <div class="row g-4 mb-5">
-        <!-- ... các card thống kê ... -->
+        <div class="col-md-3">
+            <div class="card text-center p-4 bg-primary text-white">
+                <h5>Tổng học viên</h5>
+                <h3><?= array_sum(array_column($courses, 'enrollment_count' ?? [])) ?></h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center p-4 bg-success text-white">
+                <h5>Khóa học</h5>
+                <h3><?= count($courses) ?></h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center p-4 bg-warning text-white">
+                <h5>Đánh giá TB</h5>
+                <h3>4.8 ★</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center p-4 bg-info text-white">
+                <h5>Doanh thu</h5>
+                <h3>₫0</h3>
+            </div>
+        </div>
     </div>
 
     <h4 class="mb-4">Khóa học của bạn</h4>

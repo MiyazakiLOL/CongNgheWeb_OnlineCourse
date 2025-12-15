@@ -1,11 +1,28 @@
-<?php include __DIR__ . '/../layouts/header.php'; ?>
-<!-- Giả sử load category data -->
-<h1>Sửa Danh mục</h1>
-<form method="POST">
-    <input type="hidden" name="id" value="<?= $category['id'] ?>">
-    <label>Name: <input type="text" name="name" value="<?= $category['name'] ?>"></label>
-    <label>Description: <textarea name="description"><?= $category['description'] ?></textarea></label>
-    <button type="submit" name="update">Cập nhật</button>
-</form>
+<?php include __DIR__ . '/../../layouts/header.php'; ?>
 
-<?php include __DIR__ . '/../layouts/footer.php'; ?>
+<div class="container mt-4">
+    <h1>Sửa Danh mục</h1>
+    
+    <?php if (isset($category)): ?>
+        <form method="POST" action="" class="mt-3">
+            <input type="hidden" name="id" value="<?= $category['id'] ?>">
+            
+            <div class="mb-3">
+                <label class="form-label">Tên danh mục:</label>
+                <input type="text" name="name" class="form-control" value="<?= htmlspecialchars($category['name']) ?>" required>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Mô tả:</label>
+                <textarea name="description" class="form-control" rows="3"><?= htmlspecialchars($category['description']) ?></textarea>
+            </div>
+            
+            <button type="submit" name="update" class="btn btn-primary">Cập nhật</button>
+            <a href="<?= BASE_URL ?>/admin/categories" class="btn btn-secondary">Hủy</a>
+        </form>
+    <?php else: ?>
+        <div class="alert alert-danger">Không tìm thấy danh mục!</div>
+    <?php endif; ?>
+</div>
+
+<?php include __DIR__ . '/../../layouts/footer.php'; ?>

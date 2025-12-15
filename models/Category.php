@@ -32,9 +32,9 @@ class Category {
     }
 
     public function getById($id) {
-        $query = "SELECT * FROM " . $this->table . " WHERE id = :id";
+        $query = "SELECT * FROM categories WHERE id = :id";
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':id', $id);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }

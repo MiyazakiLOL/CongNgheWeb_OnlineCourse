@@ -26,9 +26,21 @@ spl_autoload_register(function ($class) {
     }
 });
 
-// ========================
-// XỬ LÝ URL
-// ========================
+// LẤY URL ĐÚNG KHI DỰ ÁN NẰM TRONG THƯ MỤC CON
+
+$controller = '';
+$method = '';
+$params = [];
+
+// [SỬA] BƯỚC 1: Kiểm tra xem có tham số controller gửi lên kiểu truyền thống không?
+// (Đây là cái Form Đăng ký cần)
+if (isset($_REQUEST['controller'])) {
+    $controller = ucfirst($_REQUEST['controller']) . 'Controller';
+    $method     = isset($_REQUEST['action']) ? $_REQUEST['action'] : 'index';
+    // ID và các tham số khác sẽ nằm trong $_POST hoặc $_GET, không cần xử lý params ở đây
+} 
+// [SỬA] BƯỚC 2: Nếu không có, thì mới dùng logic đường dẫn thân thiện cũ của bạn
+else {
 $request_uri = $_SERVER['REQUEST_URI'];
 $request_uri = explode('?', $request_uri)[0];
 
@@ -70,6 +82,7 @@ if (
     $controller = new LessonController();
     $controller->manage($segments[3]);
     exit;
+}
 }
 
 

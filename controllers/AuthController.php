@@ -4,8 +4,16 @@ require_once __DIR__ . '/../models/User.php';
 
 class AuthController
 {
+    // Helper để lấy Base URL nếu chưa define (phòng hờ)
+    private function getBaseUrl() {
+        return defined('BASE_URL') ? BASE_URL : '/onlinecourse';
+    }
+
     public function login()
     {
+        // Đảm bảo session đã start để lưu user login
+        if (session_status() === PHP_SESSION_NONE) session_start();
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $userModel = new User();
             $userModel->email = $_POST['email'] ?? '';
@@ -15,17 +23,23 @@ class AuthController
 
             if ($user) {
                 $_SESSION['user'] = $user;
-                // Redirect theo role
+                
+                $baseUrl = $this->getBaseUrl();
+
+                // SỬA LỖI Ở ĐÂY: Chuyển hướng về Router (URL), KHÔNG chuyển về file .php
                 switch ($user['role']) {
-                    case 2:
-                        header('Location: ../views/admin/dashboard.php');
+                    case 2: // Admin
+                        header('Location: ' . $baseUrl . '/admin/dashboard');
                         exit;
-                    case 1:
-                        header('Location: ../views/instructor/dashboard.php');
+                    case 1: // Instructor
+                        header('Location: ' . $baseUrl . '/instructor/dashboard');
                         exit;
-                    case 0:
-                        header('Location: ../views/student/dashboard.php');
+                    case 0: // Student
+                        header('Location: ' . $baseUrl . '/student/dashboard'); // Hoặc trang chủ
                         exit;
+                    default:
+                         header('Location: ' . $baseUrl . '/');
+                         exit;
                 }
             } else {
                 $error = "Email hoặc mật khẩu không đúng!";
@@ -33,6 +47,7 @@ class AuthController
         }
 
         $title = "Đăng nhập";
+        // View vẫn include bình thường vì đây là lúc hiển thị form
         require __DIR__ . '/../views/auth/login.php';
     }
 
@@ -44,11 +59,12 @@ class AuthController
             $userModel->email    = $_POST['email'] ?? '';
             $userModel->password = $_POST['password'] ?? '';
             $userModel->fullname = $_POST['fullname'] ?? '';
-            $userModel->role     = (int)($_POST['role'] ?? 0); // 0=student, 1=instructor
+            $userModel->role     = (int)($_POST['role'] ?? 0); 
 
             if ($userModel->register()) {
-                // ĐĂNG KÝ THÀNH CÔNG → CHUYỂN VỀ LOGIN + HIỆN POPUP
-                header('Location: ../views/auth/login.php?register=success');
+                $baseUrl = $this->getBaseUrl();
+                // SỬA LỖI: Chuyển hướng về Route Login
+                header('Location: ' . $baseUrl . '/auth/login?register=success');
                 exit;
             } else {
                 $error = "Đăng ký thất bại! Email hoặc username đã tồn tại.";
@@ -61,9 +77,12 @@ class AuthController
 
     public function logout()
     {
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) session_start();
         session_destroy();
-        header('Location: /onlinecourse');
+        
+        $baseUrl = $this->getBaseUrl();
+        header('Location: ' . $baseUrl . '/auth/login');
         exit;
     }
 }
+?>

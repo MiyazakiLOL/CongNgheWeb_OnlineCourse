@@ -1,130 +1,134 @@
-<?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+<?php 
+
+$title = $course['title']; // Đặt title cho tab trình duyệt
+include __DIR__ . '/../layouts/header.php'; 
 ?>
-<div class="course-detail-page">
-    <div class="course-header">
-        <h1><?= htmlspecialchars($course['title'] ?? 'Khóa học') ?></h1>
-        <p class="course-meta">
-            <span class="category"><?= htmlspecialchars($course['category_id'] ?? 'Khác') ?></span>
-            <span class="instructor">Giảng viên ID: <?= htmlspecialchars($course['instructor_id']) ?></span>
-        </p>
-    </div>
 
-    <div class="course-content">
-        <div class="main-content">
-            <section class="description-section">
-                <h2>Về khóa học</h2>
-                <p><?= nl2br(htmlspecialchars($course['description'] ?? '')) ?></p>
-            </section>
+<div class="course-detail-container">
+    <div class="container py-5">
+        
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/">Trang chủ</a></li>
+                <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/course/index">Khóa học</a></li>
+                <li class="breadcrumb-item active" aria-current="page"><?= htmlspecialchars($course['title']) ?></li>
+            </ol>
+        </nav>
 
-            <section class="lessons-section">
-                <h2>Danh sách bài học</h2>
-                <?php if (empty($lessons)): ?>
-                    <p class="text-muted">Khóa học này chưa có bài học nào.</p>
-                <?php else: ?>
-                    <div class="lessons-list">
-                        <?php foreach ($lessons as $lesson): ?>
-                            <div class="lesson-item">
-                                <div class="lesson-header">
-                                    <h4><?= htmlspecialchars($lesson['title']) ?></h4>
-                                    <?php if ($lesson['video_url']): ?>
-                                        <span class="video-badge">📹 Có video</span>
-                                    <?php endif; ?>
+        <div class="row">
+            <div class="col-lg-8">
+                <h1 class="course-detail-title fw-bold mb-3"><?= htmlspecialchars($course['title']) ?></h1>
+                
+                <p class="course-desc text-secondary mb-4">
+                    <?= nl2br(htmlspecialchars($course['description'])) ?>
+                </p>
+
+                <div class="d-flex align-items-center mb-4 author-box">
+                    <img src="https://ui-avatars.com/api/?name=<?= urlencode($course['instructor_name']) ?>&background=random" 
+                        class="rounded-circle me-3" 
+                        width="40" height="40" alt="Avatar">
+                    <div>
+                        <span class="d-block small text-muted">Được giảng dạy bởi</span>
+                        <strong class="text-dark"><?= htmlspecialchars($course['instructor_name']) ?></strong>
+                    </div>
+                </div>
+
+                <div class="card mb-4 border-0 shadow-sm bg-light">
+                    <div class="card-body">
+                        <h5 class="fw-bold mb-3">Bạn sẽ học được gì?</h5>
+                        <div class="row">
+                            <div class="col-md-6"><i class="bi bi-check-circle-fill text-success me-2"></i> Hiểu rõ bản chất kiến thức</div>
+                            <div class="col-md-6"><i class="bi bi-check-circle-fill text-success me-2"></i> Làm được dự án thực tế</div>
+                            <div class="col-md-6"><i class="bi bi-check-circle-fill text-success me-2"></i> Tư duy lập trình hiện đại</div>
+                            <div class="col-md-6"><i class="bi bi-check-circle-fill text-success me-2"></i> Kỹ năng debug và tối ưu code</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="curriculum-section mb-5">
+                    <h4 class="fw-bold mb-3">Nội dung khóa học</h4>
+                    <div class="accordion" id="accordionExample">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                                    <strong>Phần 1: Giới thiệu tổng quan</strong>
+                                </button>
+                            </h2>
+                            <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionExample">
+                                <div class="accordion-body p-0">
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item"><i class="bi bi-play-circle me-2"></i> Giới thiệu khóa học <span class="float-end small text-muted">02:30</span></li>
+                                        <li class="list-group-item"><i class="bi bi-play-circle me-2"></i> Cài đặt môi trường <span class="float-end small text-muted">05:15</span></li>
+                                    </ul>
                                 </div>
-                                <p class="lesson-preview">
-                                    <?= htmlspecialchars(substr($lesson['content'], 0, 100)) ?>...
-                                </p>
                             </div>
-                        <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
-            </section>
-
-            <?php if (!empty($materials)): ?>
-                <section class="materials-section">
-                    <h2>Tài liệu hỗ trợ</h2>
-                    <div class="materials-list">
-                        <?php foreach ($materials as $material): ?>
-                            <div class="material-item">
-                                <span class="material-icon">📄</span>
-                                <span class="material-name"><?= htmlspecialchars($material['title']) ?></span>
-                                <a href="/material/download/<?= $material['id'] ?>" class="btn btn-sm btn-secondary">Tải</a>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                                    <strong>Phần 2: Kiến thức trọng tâm</strong>
+                                </button>
+                            </h2>
+                            <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                                <div class="accordion-body p-0">
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item"><i class="bi bi-play-circle me-2"></i> Bài học số 1 <span class="float-end small text-muted">10:00</span></li>
+                                        <li class="list-group-item"><i class="bi bi-file-earmark-text me-2"></i> Bài tập trắc nghiệm</li>
+                                    </ul>
+                                </div>
                             </div>
-                        <?php endforeach; ?>
+                        </div>
                     </div>
-                </section>
-            <?php endif; ?>
-        </div>
-
-        <div class="sidebar">
-            <div class="enrollment-card">
-                <?php if (isset($_SESSION['user']) && $_SESSION['user']['id']): ?>
-                    <button class="btn btn-primary btn-large" onclick="enrollCourse(<?= $course['id'] ?>)">Đăng ký khóa học</button>
-                <?php else: ?>
-                    <p class="text-center">Vui lòng <a href="/auth/login">đăng nhập</a> để đăng ký khóa học</p>
-                <?php endif; ?>
+                </div>
             </div>
+
+            <div class="col-lg-4">
+                <div class="course-sidebar sticky-top" style="top: 90px; z-index: 1;">
+                    <div class="card border-0 shadow-lg overflow-hidden">
+                        
+                        <div class="position-relative">
+                            <img src="<?= BASE_URL ?>/assets/uploads/courses/<?= !empty($course['image']) ? $course['image'] : 'default-course.png' ?>" class="card-img-top" alt="Course Image">
+                            <div class="position-absolute top-50 start-50 translate-middle">
+                                <i class="bi bi-play-circle-fill text-white display-1 opacity-75"></i>
+                            </div>
+                        </div>
+
+                        <div class="card-body p-4">
+                            <div class="mb-3 text-center">
+                                <?php if($course['price'] == 0): ?>
+                                    <h2 class="text-primary fw-bold">Miễn phí</h2>
+                                <?php else: ?>
+                                    <h2 class="text-primary fw-bold"><?= number_format($course['price']) ?> đ</h2>
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="d-grid gap-2 mb-3">
+                                <?php if (isset($_SESSION['user'])): ?>
+                                    <?php if (isset($isEnrolled) && $isEnrolled): ?>
+                                        <a href="<?= BASE_URL ?>/index.php?controller=course&action=learn&id=<?= $course['id'] ?>" class="btn btn-success btn-lg fw-bold w-100"> <i class="bi bi-play-circle-fill"></i> ĐÃ ĐĂNG KÝ - VÀO HỌC</a>
+                                    <?php else: ?>
+                                  <form action="<?= BASE_URL ?>/index.php?controller=course&action=enroll&id=<?= $course['id'] ?>" method="POST">
+                                        <button type="submit" class="btn btn-primary btn-lg fw-bold w-100">ĐĂNG KÝ NGAY</button>
+                                </form>
+                                    <?php endif; ?>
+                                <?php else: ?>
+                                    <a href="<?= BASE_URL ?>/auth/login" class="btn btn-primary btn-lg fw-bold">ĐĂNG NHẬP ĐỂ HỌC</a>
+                                <?php endif; ?>
+                            </div>
+
+                            <ul class="list-unstyled text-secondary mb-0">
+                                <li class="mb-2"><i class="bi bi-bar-chart-fill me-2"></i> Trình độ: <strong><?= $course['level'] ?></strong></li>
+                                <li class="mb-2"><i class="bi bi-clock-fill me-2"></i> Thời lượng: <strong><?= $course['duration_weeks'] ?> tuần</strong></li>
+                                <li class="mb-2"><i class="bi bi-film me-2"></i> Tổng số bài học: <strong>25</strong></li>
+                                <li><i class="bi bi-infinity me-2"></i> Truy cập trọn đời</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
         </div>
     </div>
 </div>
 
-<script>
-function enrollCourse(courseId) {
-    if (confirm('Bạn muốn đăng ký khóa học này?')) {
-        window.location.href = '/enrollment/enroll/' + courseId;
-    }
-}
-</script>
-
-<style>
-.course-detail-page { padding: 30px 20px; max-width: 1200px; margin: 0 auto; }
-
-.course-header { margin-bottom: 30px; border-bottom: 2px solid #ddd; padding-bottom: 20px; }
-.course-header h1 { margin: 0 0 10px 0; font-size: 36px; color: #333; }
-.course-meta { margin: 0; font-size: 14px; color: #666; }
-.category { display: inline-block; background-color: #007bff; color: white; padding: 4px 12px; border-radius: 20px; margin-right: 15px; }
-.instructor { color: #666; }
-
-.course-content { display: grid; grid-template-columns: 1fr 300px; gap: 30px; }
-.main-content { }
-
-section { margin-bottom: 40px; }
-section h2 { font-size: 24px; margin: 0 0 20px 0; color: #333; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
-section p { color: #666; line-height: 1.6; margin: 0; }
-
-.description-section { }
-
-.lessons-section { }
-.lessons-list { }
-.lesson-item { background: #f9f9f9; border: 1px solid #ddd; border-radius: 6px; padding: 15px; margin-bottom: 15px; }
-.lesson-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-.lesson-header h4 { margin: 0; color: #333; }
-.video-badge { background-color: #28a745; color: white; padding: 3px 8px; border-radius: 3px; font-size: 12px; }
-.lesson-preview { color: #666; font-size: 13px; margin: 10px 0 0 0; }
-
-.materials-section { }
-.materials-list { }
-.material-item { display: flex; align-items: center; gap: 10px; background: #f0f0f0; padding: 12px; border-radius: 4px; margin-bottom: 10px; }
-.material-icon { font-size: 20px; }
-.material-name { flex: 1; }
-
-.sidebar { }
-.enrollment-card { background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; padding: 20px; text-align: center; }
-.btn { padding: 10px 20px; text-decoration: none; border-radius: 4px; cursor: pointer; border: none; font-size: 14px; font-weight: bold; }
-.btn-primary { background-color: #007bff; color: white; }
-.btn-primary:hover { background-color: #0056b3; }
-.btn-large { width: 100%; padding: 15px; font-size: 16px; }
-.btn-secondary { background-color: #6c757d; color: white; padding: 5px 10px; font-size: 12px; }
-.btn-secondary:hover { background-color: #5a6268; }
-.btn-sm { padding: 5px 10px; font-size: 12px; }
-.text-muted { color: #6c757d; }
-.text-center { text-align: center; }
-.text-center a { color: #007bff; text-decoration: none; }
-
-@media (max-width: 768px) {
-    .course-content { grid-template-columns: 1fr; }
-    .sidebar { order: -1; }
-}
-</style>
+<?php include __DIR__ . '/../layouts/footer.php'; ?>

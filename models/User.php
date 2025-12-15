@@ -63,17 +63,32 @@ class User {
         return $stmt->execute();
     }
 
-    // Lấy user theo id
     public function getById($id)
     {
         try {
-            $query = "SELECT id, username, email, fullname, role, created_at FROM " . $this->table . " WHERE id = ? LIMIT 1";
+            $query = "SELECT * FROM users WHERE id = :id";
             $stmt = $this->conn->prepare($query);
-            $stmt->execute([$id]);
+            $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+            $stmt->execute();
             return $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             return null;
         }
+    }
+
+    public function delete($id) {
+        $query = "DELETE FROM users WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        return $stmt->execute();
+    }
+
+    public function getInstructors($limit = 4) {
+        $query = "SELECT * FROM " . $this->table . " WHERE role = 1 ORDER BY created_at DESC LIMIT :limit";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
 ?>
