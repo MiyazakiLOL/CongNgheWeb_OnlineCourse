@@ -1,151 +1,99 @@
 <?php
 require_once __DIR__ . '/../config/Database.php';
 
-class Lesson
-{
+class Lesson {
     private $conn;
-    private $table = "lessons";
+    private $table = 'lessons';
 
+    // Các thuộc tính khớp với bảng trong CSDL
     public $id;
     public $course_id;
     public $title;
     public $content;
     public $video_url;
-    public $error;
+    public $order;      // Tương ứng với cột `order`
+    public $created_at;
 
-    public function __construct()
-    {
-        $db = new Database();
-        $this->conn = $db->connect();
+    public function __construct() {
+        $database = new Database();
+        $this->conn = $database->connect();
     }
 
-    // Lấy tất cả bài học
-    public function all()
-    {
-        try {
-            $sql = "SELECT * FROM {$this->table} ORDER BY id DESC";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->execute();
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) {
-            $this->error = $e->getMessage();
-            return [];
-        }
+    // Lấy danh sách bài học theo khóa học
+    public function getByCourse($course_id) {
+        // Sắp xếp theo cột `order`
+        $query = "SELECT * FROM " . $this->table . " 
+                  WHERE course_id = :course_id 
+                  ORDER BY `order` ASC"; // Dùng dấu huyền cho `order`
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':course_id', $course_id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Alias cho find() - dùng để tương thích với CourseController
-    public function getById($id)
-    {
-        return $this->find($id);
+    public function getById($id) {
+        $query = "SELECT * FROM " . $this->table . " WHERE id = :id LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    // Lấy bài học theo ID
-    public function find($id)
-    {
-        try {
-            $sql = "SELECT * FROM {$this->table} WHERE id = ?";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->execute([$id]);
-            return $stmt->fetch(PDO::FETCH_ASSOC);
-        } catch (Exception $e) {
-            $this->error = $e->getMessage();
-            return null;
-        }
+    // Tạo bài học mới
+    public function create() {
+        // Lưu ý: dùng `order` trong câu lệnh SQL
+        $query = "INSERT INTO " . $this->table . " 
+                  (course_id, title, content, video_url, `order`, created_at)
+                  VALUES (:course_id, :title, :content, :video_url, :order, NOW())";
+
+        $stmt = $this->conn->prepare($query);
+
+        // Clean data
+        $this->title = htmlspecialchars(strip_tags($this->title));
+        $this->content = htmlspecialchars(strip_tags($this->content));
+        $this->video_url = htmlspecialchars(strip_tags($this->video_url));
+
+        // Bind data
+        $stmt->bindParam(':course_id', $this->course_id);
+        $stmt->bindParam(':title', $this->title);
+        $stmt->bindParam(':content', $this->content);
+        $stmt->bindParam(':video_url', $this->video_url);
+        $stmt->bindParam(':order', $this->order);
+
+        return $stmt->execute();
     }
 
-    // Lấy bài học theo course_id
-    public function getByCourse($course_id)
-    {
-        try {
-            $sql = "SELECT * FROM {$this->table} WHERE course_id = ? ORDER BY id ASC";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->execute([$course_id]);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) {
-            $this->error = $e->getMessage();
-            return [];
-        }
+    // Cập nhật bài học
+    public function update() {
+        $query = "UPDATE " . $this->table . " 
+                  SET title = :title, 
+                      content = :content, 
+                      video_url = :video_url, 
+                      `order` = :order
+                  WHERE id = :id";
+
+        $stmt = $this->conn->prepare($query);
+
+        $this->title = htmlspecialchars(strip_tags($this->title));
+        $this->content = htmlspecialchars(strip_tags($this->content));
+        $this->video_url = htmlspecialchars(strip_tags($this->video_url));
+
+        $stmt->bindParam(':title', $this->title);
+        $stmt->bindParam(':content', $this->content);
+        $stmt->bindParam(':video_url', $this->video_url);
+        $stmt->bindParam(':order', $this->order);
+        $stmt->bindParam(':id', $this->id);
+
+        return $stmt->execute();
     }
 
-    // Tạo bài học - version dùng công khai properties
-    public function create()
-    {
-        if (!$this->course_id || !$this->title || !$this->content) {
-            $this->error = "course_id, title, và content là bắt buộc";
-            return false;
-        }
-
-        try {
-            $sql = "INSERT INTO {$this->table} (course_id, title, content, video_url, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, NOW(), NOW())";
-            $stmt = $this->conn->prepare($sql);
-            return $stmt->execute([
-                $this->course_id,
-                $this->title,
-                $this->content,
-                $this->video_url ?? ''
-            ]);
-        } catch (Exception $e) {
-            $this->error = $e->getMessage();
-            return false;
-        }
-    }
-
-    // Tạo bài học từ array (backwards compat)
-    public function createFromArray($data)
-    {
-        $this->course_id = $data["course_id"] ?? null;
-        $this->title = $data["title"] ?? '';
-        $this->content = $data["content"] ?? '';
-        $this->video_url = $data["video_url"] ?? '';
-        return $this->create();
-    }
-
-    // Cập nhật bài học - version dùng công khai properties
-    public function update($id)
-    {
-        if (!$this->title || !$this->content) {
-            $this->error = "title và content là bắt buộc";
-            return false;
-        }
-
-        try {
-            $sql = "UPDATE {$this->table}
-                    SET title = ?, content = ?, video_url = ?, updated_at = NOW()
-                    WHERE id = ?";
-            $stmt = $this->conn->prepare($sql);
-            return $stmt->execute([
-                $this->title,
-                $this->content,
-                $this->video_url ?? '',
-                $id
-            ]);
-        } catch (Exception $e) {
-            $this->error = $e->getMessage();
-            return false;
-        }
-    }
-
-    // Cập nhật bài học từ array (backwards compat)
-    public function updateLesson($id, $data)
-    {
-        $this->course_id = $data["course_id"] ?? null;
-        $this->title = $data["title"] ?? '';
-        $this->content = $data["content"] ?? '';
-        $this->video_url = $data["video_url"] ?? '';
-        return $this->update($id);
-    }
-
-    // Xóa bài học
-    public function delete($id)
-    {
-        try {
-            $sql = "DELETE FROM {$this->table} WHERE id = ?";
-            $stmt = $this->conn->prepare($sql);
-            return $stmt->execute([$id]);
-        } catch (Exception $e) {
-            $this->error = $e->getMessage();
-            return false;
-        }
+    public function delete($id) {
+        $query = "DELETE FROM " . $this->table . " WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $id);
+        return $stmt->execute();
     }
 }
+?>

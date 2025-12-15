@@ -74,24 +74,35 @@ $courses = $courseModel->getByInstructor($user['id']);
     <h4 class="mb-4">Khóa học của bạn</h4>
     <?php if (!empty($courses)): ?>
         <div class="table-responsive">
-            <table class="table table-hover">
-                <thead class="table-light">
+            <table class="table table-hover align-middle"> <thead class="table-light">
                     <tr>
                         <th>Tiêu đề</th>
                         <th>Danh mục</th>
                         <th>Giá</th>
-                        <th>Hành động</th>
-                    </tr>
+                        <th style="width: 250px;">Hành động</th> </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($courses as $c): ?>
                         <tr>
-                            <td><strong><?= htmlspecialchars($c['title']) ?></strong></td>
+                            <td>
+                                <strong><?= htmlspecialchars($c['title']) ?></strong>
+                                <br>
+                                <small class="text-muted">ID: <?= $c['id'] ?></small>
+                            </td>
                             <td><?= htmlspecialchars($c['category_name'] ?? 'Chưa có') ?></td>
                             <td><?= $c['price'] == 0 ? 'Miễn phí' : number_format($c['price']) . 'đ' ?></td>
                             <td>
-                                <a href="instructor/courses/edit/<?= $c['id'] ?>" class="btn btn-sm btn-outline-primary">Sửa</a>
-                                <a href="instructor/courses/delete/<?= $c['id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Xóa thật nhé?')">Xóa</a>
+                                <a href="<?= BASE_URL ?>/lesson/manage/<?= $c['id'] ?>" class="btn btn-sm btn-info text-white me-1" title="Quản lý bài học">
+                                    <i class="bi bi-collection-play"></i> Xem
+                                </a>
+
+                                <a href="<?= BASE_URL ?>/instructor/courses/edit/<?= $c['id'] ?>" class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="bi bi-pencil"></i> Sửa
+                                </a>
+
+                                <a href="<?= BASE_URL ?>/instructor/courses/delete/<?= $c['id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa khóa học này không? Hành động này không thể hoàn tác!')">
+                                    <i class="bi bi-trash"></i> Xóa
+                                </a>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -99,11 +110,7 @@ $courses = $courseModel->getByInstructor($user['id']);
             </table>
         </div>
     <?php else: ?>
-        <div class="text-center py-5 bg-light rounded">
-            <p class="text-muted mb-4">Bạn chưa tạo khóa học nào.</p>
-            <a href="instructor/courses/create" class="btn btn-success btn-lg">Tạo khóa học đầu tiên</a>
-        </div>
-    <?php endif; ?>
+        <?php endif; ?>
 </div>
 
 <?php include __DIR__ . '/../layouts/footer.php'; ?>

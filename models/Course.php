@@ -170,6 +170,21 @@ class Course {
         }
         return false;
     }
+            
+    //LẤY TẤT CẢ KHÓA HỌC CỦA MỘT GIẢNG VIÊN
+
+    public function getByIdAndInstructor($course_id, $instructor_id)
+{
+    $sql = "SELECT * FROM courses 
+            WHERE id = ? AND instructor_id = ?";
+    $stmt = $this->conn->prepare($sql);
+    $stmt->execute([$course_id, $instructor_id]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+
+    // --- HÀM CREATE ---
+    
 
     // --- CẬP NHẬT HÀM UPDATE ---
     public function update() { // Bỏ tham số $id vì đã có $this->id
@@ -213,5 +228,13 @@ class Course {
             return false;
         }
     }
+    public function findByInstructor($course_id, $instructor_id)
+{
+    $sql = "SELECT * FROM courses WHERE id = ? AND instructor_id = ?";
+    $stmt = $this->conn->prepare($sql);
+    $stmt->execute([$course_id, $instructor_id]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
 }
 ?>
