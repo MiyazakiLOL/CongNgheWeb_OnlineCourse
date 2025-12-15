@@ -1,5 +1,5 @@
 <?php
-// index.php – nằm trong htdocs/onlinecourse/index.php
+// index.php – htdocs/onlinecourse/index.php
 
 session_start();
 define('BASE_URL', '/onlinecourse');
@@ -21,6 +21,7 @@ spl_autoload_register(function ($class) {
     foreach ($paths as $file) {
         if (file_exists($file)) {
             require_once $file;
+            return;
         }
     }
 });
@@ -41,44 +42,59 @@ if (isset($_REQUEST['controller'])) {
 // [SỬA] BƯỚC 2: Nếu không có, thì mới dùng logic đường dẫn thân thiện cũ của bạn
 else {
 $request_uri = $_SERVER['REQUEST_URI'];
-
-// Loại bỏ query string (?xxx=yyy)
 $request_uri = explode('?', $request_uri)[0];
 
-// Lấy base path thực tế (ví dụ: /onlinecourse)
-$script_name = $_SERVER['SCRIPT_NAME'];           // vd: /onlinecourse/index.php
-$base_path   = dirname($script_name);             // vd: /onlinecourse
+$script_name = $_SERVER['SCRIPT_NAME']; // /onlinecourse/index.php
+$base_path   = dirname($script_name);   // /onlinecourse
+
 if ($base_path === '/' || $base_path === '\\') {
     $base_path = '';
 }
 
-// Cắt bỏ base path khỏi request_uri
-$uri = $request_uri;
-if ($base_path !== '' && strpos($request_uri, $base_path) === 0) {
-    $uri = substr($request_uri, strlen($base_path));
+// Cắt base path
+if ($base_path && strpos($request_uri, $base_path) === 0) {
+    $request_uri = substr($request_uri, strlen($base_path));
 }
-$uri = trim($uri, '/');
-if ($uri === 'index.php') $uri = ''; // tránh trường hợp truy cập trực tiếp index.php
 
-// Nếu vẫn rỗng → trang chủ
-if ($uri === '') {
+$uri = trim($request_uri, '/');
+
+if ($uri === '' || $uri === 'index.php') {
     $controller = 'HomeController';
-    $method     = 'index';
-    
+    $method = 'index';
+    $params = [];
 } else {
     $segments = explode('/', $uri);
 
-    $controller = !empty($segments[0]) ? ucfirst($segments[0]) . 'Controller' : 'HomeController';
-    $method     = !empty($segments[1]) ? $segments[1] : 'index';
-    $params     = count($segments) > 2 ? array_slice($segments, 2) : [];
+    $controller = ucfirst($segments[0]) . 'Controller';
+    $method     = $segments[1] ?? 'index';
+    $params     = array_slice($segments, 2);
+}
+
+// ================= ROUTE QUẢN LÝ BÀI HỌC =================
+// instructor/lessons/manage/{course_id}
+if (
+    isset($segments[0], $segments[1], $segments[2], $segments[3]) &&
+    $segments[0] === 'instructor' &&
+    $segments[1] === 'lessons' &&
+    $segments[2] === 'manage'
+) {
+    require_once __DIR__ . '/controllers/LessonController.php';
+    $controller = new LessonController();
+    $controller->manage($segments[3]);
+    exit;
 }
 }
 
-// Kiểm tra controller tồn tại
+
+
+// ========================
+// KIỂM TRA CONTROLLER
+// ========================
 $controllerFile = __DIR__ . "/controllers/$controller.php";
 if (!file_exists($controllerFile)) {
     http_response_code(404);
-    echo "<h1>404 Not Found</h1><p>Controller <strong>$controller</strong> không tồn tại.</p>";
+    echo "<h1>404 Not Found</h1>
+          <p>Controller <strong>$controller</strong> không tồn tại.</p>";
     exit;
 }
 
@@ -86,7 +102,8 @@ $instance = new $controller();
 
 if (!method_exists($instance, $method)) {
     http_response_code(404);
-    echo "<h1>404 Not Found</h1><p>Phương thức <strong>$method</strong> không tồn tại trong $controller.</p>";
+    echo "<h1>404 Not Found</h1>
+          <p>Method <strong>$method</strong> không tồn tại trong $controller.</p>";
     exit;
 }
 

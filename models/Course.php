@@ -170,6 +170,53 @@ class Course {
         }
         return false;
     }
+        
+    // Lấy tất cả khóa học (admin)
+    public function getAllForAdmin() {
+        $query = "SELECT c.*, u.fullname as instructor_name, cat.name as category_name
+                  FROM courses c
+                  LEFT JOIN users u ON c.instructor_id = u.id
+                  LEFT JOIN categories cat ON c.category_id = cat.id
+                  ORDER BY c.created_at DESC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    
+
+    //LẤY TẤT CẢ KHÓA HỌC CỦA MỘT GIẢNG VIÊN
+   
+
+    //LẤY 1 KHÓA HỌC THEO ID (CHI TIẾT)
+    public function find(int $id): array|false {
+        $query = "SELECT c.*, 
+                         u.fullname as instructor_name,
+                         cat.name as category_name
+                  FROM $this->table c
+                  LEFT JOIN users u ON c.instructor_id = u.id
+                  LEFT JOIN categories cat ON c.category_id = cat.id
+                  WHERE c.id = :id
+                  LIMIT 1";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: false;
+    }
+
+    public function getByIdAndInstructor($course_id, $instructor_id)
+{
+    $sql = "SELECT * FROM courses 
+            WHERE id = ? AND instructor_id = ?";
+    $stmt = $this->conn->prepare($sql);
+    $stmt->execute([$course_id, $instructor_id]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+
+    // --- HÀM CREATE ---
+    
 
     // --- CẬP NHẬT HÀM UPDATE ---
     public function update() { // Bỏ tham số $id vì đã có $this->id
@@ -213,5 +260,13 @@ class Course {
             return false;
         }
     }
+    public function findByInstructor($course_id, $instructor_id)
+{
+    $sql = "SELECT * FROM courses WHERE id = ? AND instructor_id = ?";
+    $stmt = $this->conn->prepare($sql);
+    $stmt->execute([$course_id, $instructor_id]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
 }
 ?>

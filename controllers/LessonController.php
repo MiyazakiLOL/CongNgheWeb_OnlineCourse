@@ -1,57 +1,39 @@
 <?php
-require_once 'models/Lesson.php';
+require_once __DIR__ . '/../models/Lesson.php';
+require_once __DIR__ . '/../models/Course.php';
 
 class LessonController
 {
-    private $lessonModel;
-
-    public function __construct()
+    private function checkInstructor()
     {
-        $this->lessonModel = new Lesson();
+        if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 1) {
+            header('Location: /onlinecourse/auth/login');
+            exit;
+        }
     }
 
-    public function index()
+    // =============================
+    // DANH SÁCH + QUẢN LÝ BÀI HỌC
+    // =============================
+    public function manage($course_id)
     {
-        $lessons = $this->lessonModel->all();
-        require 'views/lessons/index.php';
-    }
+        $this->checkInstructor();
 
-    public function create()
-    {
-        require 'views/lessons/create.php';
-    }
+        $courseModel = new Course();
+        $lessonModel = new Lesson();
 
-    public function store()
-    {
-        $this->lessonModel->create($_POST);
-        header("Location: index.php?uri=lesson/index");
-    }
+        $instructor_id = $_SESSION['user']['id'];
 
-    public function show()
-    {
-        $id = $_GET['id'];
-        $lesson = $this->lessonModel->find($id);
-        require 'views/lessons/show.php';
-    }
+        // 🔐 kiểm tra quyền
+        $course = $courseModel->findByInstructor($course_id, $instructor_id);
 
-    public function edit()
-    {
-        $id = $_GET['id'];
-        $lesson = $this->lessonModel->find($id);
-        require 'views/lessons/edit.php';
-    }
+        if (!$course) {
+            echo "<h3>❌ Khóa học không tồn tại hoặc bạn không có quyền</h3>";
+            exit;
+        }
 
-    public function update()
-    {
-        $id = $_GET['id'];
-        $this->lessonModel->updateLesson($id, $_POST);
-        header("Location: index.php?uri=lesson/index");
-    }
+        $lessons = $lessonModel->getByCourse($course_id);
 
-    public function delete()
-    {
-        $id = $_GET['id'];
-        $this->lessonModel->delete($id);
-        header("Location: index.php?uri=lesson/index");
+        require __DIR__ . '/../views/instructor/lessons/manage.php';
     }
 }
