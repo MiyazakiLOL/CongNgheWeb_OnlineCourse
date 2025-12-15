@@ -26,6 +26,20 @@ spl_autoload_register(function ($class) {
 });
 
 // LẤY URL ĐÚNG KHI DỰ ÁN NẰM TRONG THƯ MỤC CON
+
+$controller = '';
+$method = '';
+$params = [];
+
+// [SỬA] BƯỚC 1: Kiểm tra xem có tham số controller gửi lên kiểu truyền thống không?
+// (Đây là cái Form Đăng ký cần)
+if (isset($_REQUEST['controller'])) {
+    $controller = ucfirst($_REQUEST['controller']) . 'Controller';
+    $method     = isset($_REQUEST['action']) ? $_REQUEST['action'] : 'index';
+    // ID và các tham số khác sẽ nằm trong $_POST hoặc $_GET, không cần xử lý params ở đây
+} 
+// [SỬA] BƯỚC 2: Nếu không có, thì mới dùng logic đường dẫn thân thiện cũ của bạn
+else {
 $request_uri = $_SERVER['REQUEST_URI'];
 
 // Loại bỏ query string (?xxx=yyy)
@@ -50,13 +64,14 @@ if ($uri === 'index.php') $uri = ''; // tránh trường hợp truy cập trực
 if ($uri === '') {
     $controller = 'HomeController';
     $method     = 'index';
-    $params     = [];
+    
 } else {
     $segments = explode('/', $uri);
 
     $controller = !empty($segments[0]) ? ucfirst($segments[0]) . 'Controller' : 'HomeController';
     $method     = !empty($segments[1]) ? $segments[1] : 'index';
     $params     = count($segments) > 2 ? array_slice($segments, 2) : [];
+}
 }
 
 // Kiểm tra controller tồn tại

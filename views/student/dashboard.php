@@ -102,8 +102,9 @@ try {
                                 <?php endif; ?>
                             </div>
 
-                            <a href="<?= BASE_URL ?>/courses/detail/<?= $course['course_id'] ?? $course['id'] ?? '' ?>" 
-                               class="btn btn-primary mt-3">Tiếp tục học</a>
+                            <a href="<?= BASE_URL ?>/index.php?controller=course&action=learn&id=<?= $course['course_id'] ?>" 
+                                   class="btn btn-primary w-100 fw-bold">Tiếp tục học</a>
+                               
                         </div>
                     </div>
                 </div>
